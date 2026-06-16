@@ -9,6 +9,7 @@ docs/
 ├── 00-project-overview.md   # 产品范围与任务依赖树
 ├── 01-architecture.md       # 系统架构与关键决策(ADR 汇总)
 ├── branding/                # 品牌资产(logo svg、配色)
+├── references/              # 标准规范引用(TR-x69 等)
 └── tasks/
     └── WS-<n>-<slug>.md      # 每个任务一份交付文档
 ```

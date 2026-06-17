@@ -22,10 +22,15 @@ docs/
 5. **测试与验收记录**:用例、结果、QA 结论。
 6. **变更记录 (Changelog)**:日期 + 改动摘要。
 
-## 3. 提交流程
+## 3. 提交与合并流程(小队规范)
 - 提交规范:Conventional Commits,文档用 `docs(<scope>): ...`(如 `docs(s5): USP Get/Set 接口说明`)。
-- 通过 **Pull Request** 合入,禁止直接 push 主分支。
-- 完成后在对应 Multica issue **回贴文档/PR 链接**,作为推进"待测试"的前置条件。
+- **铁律:禁止直接 push `main`**,一律走 Pull Request 合入。
+- **合并流程(老板已授权 agent 自行合并,不再手动介入)**:
+  1. 作者提 PR;
+  2. **QA_Sherlock 审查通过**(代码/接口/安全);QA 自己作为作者的纯文档 PR,由 Archie_PM 复核;
+  3. 由 agent 执行合并(`gh pr merge --squash`),并在对应 Multica issue **回贴合并结果 + commit 链接**;
+  4. 合并前作者自检 `git diff` 不含任何密钥/证书/口令。
+- **合并权限**:runtime 已具备 GitHub 合并权限(`gh` 认证,token 含 `repo` scope)。若某 runtime 无法合并,**及时回报老板补认证,不得绕过 PR 直推 `main`**。
 
 ## 4. Definition of Done(文档维度)
 - [ ] 任务文档置于 `docs/tasks/WS-<n>-*.md` 且六大章节齐全。

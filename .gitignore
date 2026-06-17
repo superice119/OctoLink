@@ -62,3 +62,16 @@ Thumbs.db
 coverage/
 *.lcov
 .nyc_output/
+
+# --- merged from upstream oktopus .gitignore ---
+main
+*.out
+go.work
+*.log
+*.db
+*.csr
+*.db.new
+*.pwd
+*.acl
+main
+mochi

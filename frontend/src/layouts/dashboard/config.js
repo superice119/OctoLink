@@ -65,7 +65,7 @@ export const items = [
   },
   {
     title: 'Docs',
-    path: 'https://docs.oktopus.app.br',
+    path: 'https://github.com/superice119/OctoLink/wiki',
     icon: (
       <SvgIcon fontSize="small">
         <BookOpenIcon />

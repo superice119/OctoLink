@@ -193,7 +193,7 @@ const Page = () => {
     <>
       <Head>
         <title>
-          Oktopus | Users
+          OctoLink | Users
         </title>
       </Head>
       <Box

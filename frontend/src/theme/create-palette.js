@@ -2,14 +2,14 @@ import { common } from '@mui/material/colors';
 import { alpha } from '@mui/material/styles';
 import { error, indigo, info, neutral, success, warning, graphics } from './colors';
 
-const getColorScheme =  () => {
+const getColorScheme = () => {
   return JSON.stringify({
-    "buttons": "#c05521",
-    "sidebar_end": "#305a85",
-    "sidebar_initial": "#173033",
-    "tables": "#214256",
-    "words_outside_sidebar": "#173033",
-    "connected_mtps_color": "#c05521"
+    "buttons": process.env.NEXT_PUBLIC_COLOR_PRIMARY || "#2563EB",
+    "sidebar_end": process.env.NEXT_PUBLIC_COLOR_SIDEBAR_END || "#1D4ED8",
+    "sidebar_initial": process.env.NEXT_PUBLIC_COLOR_SIDEBAR_START || "#0D3D3D",
+    "tables": process.env.NEXT_PUBLIC_COLOR_TABLE_HEADER || "#1E3A5F",
+    "words_outside_sidebar": process.env.NEXT_PUBLIC_COLOR_TEXT || "#1E293B",
+    "connected_mtps_color": process.env.NEXT_PUBLIC_COLOR_ACCENT || "#0EA5A4"
   });
 }
 

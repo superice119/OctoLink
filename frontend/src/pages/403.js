@@ -7,7 +7,7 @@ const Page = () => (
   <>
     <Head>
       <title>
-        403 | Oktopus TR-369
+        403 | OctoLink TR-369
       </title>
     </Head>
     <Box

@@ -100,7 +100,7 @@ export const TopNav = (props) => {
                 </SvgIcon>
               </IconButton>
             </Tooltip> */}
-            <Link href='https://www.oktopus.app.br/pricing' underline="none" target='_blank'>
+            <Link href='https://github.com/superice119/OctoLink' underline="none" target='_blank'>
               <Tooltip title="Upgrade to Pro">
                 <IconButton>
                   <SvgIcon fontSize="small">

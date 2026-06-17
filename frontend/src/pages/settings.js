@@ -8,7 +8,7 @@ const Page = () => (
   <>
     <Head>
       <title>
-        Settings | Oktopus
+        Settings | OctoLink
       </title>
     </Head>
     <Box

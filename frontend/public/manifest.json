@@ -1,6 +1,6 @@
 {
-  "short_name": "Oktopus TR-369",
-  "name": "Oktopus",
+  "short_name": "OctoLink",
+  "name": "OctoLink 物联控制器",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,6 +10,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#2563EB",
   "background_color": "#ffffff"
 }

@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/httptest"
 
 	"github.com/google/uuid"
 	"github.com/leandrofars/oktopus/internal/bridge"
@@ -276,10 +277,23 @@ func (a *Api) deviceUpdateMsg(w http.ResponseWriter, r *http.Request) {
 	utils.MarshallDecoder(&set, r.Body)
 	msg := usp_utils.NewSetMsg(set)
 
-	err = sendUspMsg(msg, sn, w, a.nc, mtp)
-	if err != nil {
-		return
+	rec := httptest.NewRecorder()
+	err = sendUspMsg(msg, sn, rec, a.nc, mtp)
+
+	// Purge cached GET results for this device so next cached read is fresh.
+	if err == nil {
+		go purgeDeviceParamCache(r.Context(), a.paramKv, sn)
 	}
+
+	for k, vs := range rec.Header() {
+		for _, v := range vs {
+			w.Header().Add(k, v)
+		}
+	}
+	if rec.Code != http.StatusOK {
+		w.WriteHeader(rec.Code)
+	}
+	w.Write(rec.Body.Bytes())
 }
 
 func (a *Api) deviceGetParameterInstances(w http.ResponseWriter, r *http.Request) {

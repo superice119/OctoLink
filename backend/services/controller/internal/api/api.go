@@ -17,26 +17,38 @@ import (
 )
 
 type Api struct {
-	port   string
-	js     jetstream.JetStream
-	nc     *nats.Conn
-	bridge bridge.Bridge
-	db     db.Database
-	kv     jetstream.KeyValue
-	ctx    context.Context
+	port    string
+	js      jetstream.JetStream
+	nc      *nats.Conn
+	bridge  bridge.Bridge
+	db      db.Database
+	kv      jetstream.KeyValue
+	paramKv jetstream.KeyValue
+	ctx     context.Context
 }
 
 const REQUEST_TIMEOUT = time.Second * 30
 
 func NewApi(c *config.Config, js jetstream.JetStream, nc *nats.Conn, bridge bridge.Bridge, d db.Database, kv jetstream.KeyValue) Api {
+	paramKv, err := js.CreateOrUpdateKeyValue(c.RestApi.Ctx, jetstream.KeyValueConfig{
+		Bucket:      "usp-param-cache",
+		Description: "USP parameter GET result cache (5-min TTL)",
+		TTL:         5 * time.Minute,
+	})
+	if err != nil {
+		log.Printf("Warning: failed to create USP param cache KV bucket, caching disabled: %v", err)
+		paramKv = nil
+	}
+
 	return Api{
-		port:   c.RestApi.Port,
-		js:     js,
-		nc:     nc,
-		ctx:    c.RestApi.Ctx,
-		bridge: bridge,
-		db:     d,
-		kv:     kv,
+		port:    c.RestApi.Port,
+		js:      js,
+		nc:      nc,
+		ctx:     c.RestApi.Ctx,
+		bridge:  bridge,
+		db:      d,
+		kv:      kv,
+		paramKv: paramKv,
 	}
 }
 
@@ -67,6 +79,7 @@ func (a *Api) StartApi() {
 	iot.HandleFunc("", a.retrieveDevices).Methods("GET", "DELETE")
 	iot.HandleFunc("/filterOptions", a.filterOptions).Methods("GET")
 	iot.HandleFunc("/{sn}/{mtp}/generic", a.deviceGenericMessage).Methods("PUT")
+	iot.HandleFunc("/{sn}/{mtp}/get/cached", a.deviceGetCachedMsg).Methods("PUT")
 	iot.HandleFunc("/{sn}/{mtp}/get", a.deviceGetMsg).Methods("PUT")
 	iot.HandleFunc("/{sn}/{mtp}/add", a.deviceCreateMsg).Methods("PUT")
 	iot.HandleFunc("/{sn}/{mtp}/del", a.deviceDeleteMsg).Methods("PUT")

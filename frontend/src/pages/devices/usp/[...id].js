@@ -11,8 +11,10 @@ import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { useRouter } from 'next/router';
 import { DevicesRPC } from 'src/sections/devices/usp/devices-rpc';
 import { DevicesDiscovery } from 'src/sections/devices/usp/devices-discovery';
+import { DevicesParamQuery } from 'src/sections/devices/usp/devices-params-query';
 import EnvelopeIcon from '@heroicons/react/24/outline/EnvelopeIcon';
 import MagnifyingGlassIcon from '@heroicons/react/24/solid/MagnifyingGlassIcon';
+import BoltIcon from '@heroicons/react/24/solid/BoltIcon';
 import WifiIcon from '@heroicons/react/24/outline/WifiIcon';
 import ServerStackIcon from '@heroicons/react/24/outline/ServerStackIcon';
 import { useState } from 'react';
@@ -38,6 +40,8 @@ const Page = () => {
                 return <DevicesRPC/>
             case "discovery":
                 return <DevicesDiscovery/>
+            case "query":
+                return <DevicesParamQuery/>
             default:
                 router.replace(`/devices/usp/${deviceID}/discovery`)
         }
@@ -145,17 +149,23 @@ const Page = () => {
                         label="Actions" 
                         style={{cursor:"default", opacity: 0.5}}
                         value={"actions"} /></Tooltip> */}
-                        <Tab 
-                        value={"discovery"} 
+                        <Tab
+                        value={"discovery"}
                         onClick={()=>{router.push(`/devices/usp/${deviceID}/discovery`)}}
-                        icon={<SvgIcon><MagnifyingGlassIcon/></SvgIcon>} 
-                        iconPosition={"end"} 
+                        icon={<SvgIcon><MagnifyingGlassIcon/></SvgIcon>}
+                        iconPosition={"end"}
                         label="Parameters" />
-                        <Tab 
-                        value={"msg"} 
+                        <Tab
+                        value={"query"}
+                        onClick={()=>{router.push(`/devices/usp/${deviceID}/query`)}}
+                        icon={<SvgIcon><BoltIcon/></SvgIcon>}
+                        iconPosition={"end"}
+                        label="Query" />
+                        <Tab
+                        value={"msg"}
                         onClick={()=>{router.push(`/devices/usp/${deviceID}/msg`)}}
-                        icon={<SvgIcon><EnvelopeIcon/></SvgIcon>} 
-                        iconPosition={"end"} 
+                        icon={<SvgIcon><EnvelopeIcon/></SvgIcon>}
+                        iconPosition={"end"}
                         label="Messages" />
                     </Tabs>
                 </Box>

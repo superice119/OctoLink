@@ -38,7 +38,7 @@ const Page = (props) => {
           }
         })
         .catch((err)=>{
-            console.log('You cannot place/ receive a call without granting video and audio permissions! Please change your settings to use Oktopus calls.')
+            console.log('You cannot place/ receive a call without granting video and audio permissions! Please change your settings to use OctoLink calls.')
             console.log(err)
         })
 

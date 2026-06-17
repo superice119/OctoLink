@@ -1,0 +1,30 @@
+{
+  "name": "OctoLink",
+  "tagline": "物联控制器",
+  "website": "https://github.com/superice119/OctoLink",
+  "docsUrl": "https://github.com/superice119/OctoLink/wiki",
+  "supportUrl": "https://github.com/superice119/OctoLink/issues",
+  "colors": {
+    "primary": "#2563EB",
+    "secondary": "#64748B",
+    "gradientStart": "#0EA5A4",
+    "gradientEnd": "#2563EB",
+    "sidebarStart": "#0D3D3D",
+    "sidebarEnd": "#1D4ED8"
+  },
+  "envVars": {
+    "NEXT_PUBLIC_BRAND_NAME": "OctoLink",
+    "NEXT_PUBLIC_BRAND_TAGLINE": "物联控制器",
+    "NEXT_PUBLIC_BRAND_WEBSITE": "https://github.com/superice119/OctoLink",
+    "NEXT_PUBLIC_BRAND_DOCS_URL": "https://github.com/superice119/OctoLink/wiki",
+    "NEXT_PUBLIC_BRAND_SUPPORT_URL": "https://github.com/superice119/OctoLink/issues",
+    "NEXT_PUBLIC_BRAND_DEMO_EMAIL": "demo@octolink.io",
+    "NEXT_PUBLIC_BRAND_DEMO_HOST": "demo.octolink",
+    "NEXT_PUBLIC_COLOR_PRIMARY": "#2563EB",
+    "NEXT_PUBLIC_COLOR_SIDEBAR_END": "#1D4ED8",
+    "NEXT_PUBLIC_COLOR_SIDEBAR_START": "#0D3D3D",
+    "NEXT_PUBLIC_COLOR_TABLE_HEADER": "#1E3A5F",
+    "NEXT_PUBLIC_COLOR_TEXT": "#1E293B",
+    "NEXT_PUBLIC_COLOR_ACCENT": "#0EA5A4"
+  }
+}

@@ -103,7 +103,7 @@ const Page = () => {
     <>
       <Head>
         <title>
-          Login | Oktopus
+          Login | OctoLink
         </title>
       </Head>
       <Box
@@ -135,7 +135,7 @@ const Page = () => {
                 color="text.secondary"
                 variant="body2"
               >
-              This project is open source, reach out at <Link href='https://github.com/OktopUSP/oktopus'>Github</Link> or <Link href='https://join.slack.com/t/oktopustr-369/shared_invite/zt-1znmrbr52-3AXgOlSeQTPQW8_Qhn3C4g'>Slack</Link>
+              This project is open source, reach out at <Link href='https://github.com/superice119/OctoLink'>Github</Link>
               </Typography>
             </Stack>
             {/*<Tabs
@@ -210,7 +210,7 @@ const Page = () => {
                 >
                   Skip authentication
                 </Button> */}
-                { window.location.host.includes("demo.oktopus") && <Alert
+                { window.location.host.includes("demo.octolink") && <Alert
                   color="primary"
                   severity="info"
                   sx={{ mt: 3 }}

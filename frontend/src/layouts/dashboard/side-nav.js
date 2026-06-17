@@ -179,10 +179,10 @@ export const SideNav = (props) => {
           Powered by
         </Typography>
       </Stack>
-      <a href='https://oktopus.app.br' style={{position:"absolute", bottom:"10px", left:"100px"}} target='_blank'>
-      <img 
-        src="/assets/logo.png" 
-        alt="Oktopus logo image"
+      <a href='https://github.com/superice119/OctoLink' style={{position:"absolute", bottom:"10px", left:"100px"}} target='_blank'>
+      <img
+        src="/assets/logo.png"
+        alt="OctoLink logo"
         width={80}
         />
       </a>

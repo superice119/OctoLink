@@ -45,7 +45,7 @@ const Page = () => {
     <>
         <Head>
             <title>
-                Oktopus | Controller
+                OctoLink | 物联控制器
             </title>
         </Head>
         <Box

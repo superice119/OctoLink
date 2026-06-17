@@ -63,8 +63,11 @@ docker compose up -d
 
 ## 版权声明
 
-本项目基于 [Oktopus](https://github.com/OktopUSP/oktopus) 进行二次开发，遵循其原始开源协议。  
+本项目基于 [Oktopus](https://github.com/OktopUSP/oktopus) 进行二次开发，遵循其原始开源协议(见 [LICENSE](LICENSE))。  
 上游版权归 OktopUSP 社区所有。品牌 Rebranding 在 WS-7 阶段完成。
+
+> **基线 provenance**：导入自上游 `OktopUSP/oktopus` commit `e1f07d71a93c4169421f2e94ce6605746ece37ad`。  
+> 导入时已剔除所有凭证材料(各服务 `.env`、NATS `*.pem` 证书),仅保留 `.env.example` 占位与 `nats_config/CERTS.md` 说明;上游原始 README 见 [README.upstream.md](README.upstream.md)。
 
 ## 文档
 

@@ -17,11 +17,25 @@ const (
 )
 
 type User struct {
-	Email    string     `json:"email"`
-	Name     string     `json:"name"`
-	Password string     `json:"password,omitempty"`
-	Level    UserLevels `json:"level"`
-	Phone    string     `json:"phone"`
+	Email    string     `json:"email"              bson:"email"`
+	Name     string     `json:"name"               bson:"name"`
+	Password string     `json:"password,omitempty" bson:"password"`
+	Level    UserLevels `json:"level"              bson:"level"`
+	Phone    string     `json:"phone"              bson:"phone"`
+	TenantID string     `json:"tenant_id,omitempty" bson:"tenant_id,omitempty"`
+	Role     string     `json:"role,omitempty"      bson:"role,omitempty"`
+}
+
+// EffectiveRole returns the user's role, falling back to Level-based defaults for
+// legacy users that pre-date the RBAC migration.
+func (u *User) EffectiveRole() string {
+	if u.Role != "" {
+		return u.Role
+	}
+	if u.Level == AdminUser {
+		return RoleSuperAdmin
+	}
+	return RoleOperator
 }
 
 var ErrorUserExists = errors.New("User already exists")
@@ -55,6 +69,30 @@ func (d *Database) FindAllUsers() ([]map[string]interface{}, error) {
 		log.Fatal(err)
 	}
 	return result, err
+}
+
+func (d *Database) FindUsersByTenant(tenantID string) ([]map[string]interface{}, error) {
+	var result []map[string]interface{}
+	cursor, err := d.users.Find(d.ctx, bson.D{{Key: "tenant_id", Value: tenantID}})
+	if err != nil {
+		return []map[string]interface{}{}, err
+	}
+	if err = cursor.All(d.ctx, &result); err != nil {
+		return []map[string]interface{}{}, err
+	}
+	return result, nil
+}
+
+func (d *Database) UpdateUserRole(email, role, tenantID string) error {
+	_, err := d.users.UpdateOne(
+		d.ctx,
+		bson.D{{Key: "email", Value: email}},
+		bson.D{{Key: "$set", Value: bson.D{
+			{Key: "role", Value: role},
+			{Key: "tenant_id", Value: tenantID},
+		}}},
+	)
+	return err
 }
 
 func (d *Database) FindUser(email string) (User, error) {

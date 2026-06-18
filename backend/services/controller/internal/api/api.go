@@ -50,6 +50,7 @@ func (a *Api) StartApi() {
 	authentication.HandleFunc("/password", a.changePassword).Methods("PUT")
 	authentication.HandleFunc("/admin/register", a.registerAdminUser).Methods("POST")
 	authentication.HandleFunc("/admin/exists", a.adminUserExists).Methods("GET")
+
 	iot := r.PathPrefix("/api/device").Subrouter()
 	iot.HandleFunc("/alias", a.setDeviceAlias).Methods("PUT")
 	iot.HandleFunc("/auth", a.deviceAuth).Methods("GET", "POST", "DELETE")
@@ -75,28 +76,43 @@ func (a *Api) StartApi() {
 	iot.HandleFunc("/{sn}/{mtp}/parameters", a.deviceGetSupportedParametersMsg).Methods("PUT")
 	iot.HandleFunc("/{sn}/{mtp}/instances", a.deviceGetParameterInstances).Methods("PUT")
 	iot.HandleFunc("/{sn}/{mtp}/operate", a.deviceOperateMsg).Methods("PUT")
-	iot.HandleFunc("/{sn}/{mtp}/fw_update", a.deviceFwUpdate).Methods("PUT") //TODO: put it to work and generalize for usp and cwmp
+	iot.HandleFunc("/{sn}/{mtp}/fw_update", a.deviceFwUpdate).Methods("PUT")
 	iot.HandleFunc("/{sn}/wifi", a.deviceWifi).Methods("PUT", "GET")
+
 	dash := r.PathPrefix("/api/info").Subrouter()
 	dash.HandleFunc("/vendors", a.vendorsInfo).Methods("GET")
 	dash.HandleFunc("/status", a.statusInfo).Methods("GET")
 	dash.HandleFunc("/device_class", a.productClassInfo).Methods("GET")
 	dash.HandleFunc("/general", a.generalInfo).Methods("GET")
+
 	users := r.PathPrefix("/api/users").Subrouter()
 	users.HandleFunc("", a.retrieveUsers).Methods("GET")
 
+	// RBAC: tenant management (super_admin only — enforced inside handlers)
+	tenants := r.PathPrefix("/api/tenants").Subrouter()
+	tenants.HandleFunc("", a.listTenants).Methods("GET")
+	tenants.HandleFunc("", a.createTenant).Methods("POST")
+	tenants.HandleFunc("/{id}", a.updateTenant).Methods("PUT")
+	tenants.HandleFunc("/{id}", a.deleteTenant).Methods("DELETE")
+
+	// RBAC: role management
+	roles := r.PathPrefix("/api/roles").Subrouter()
+	roles.HandleFunc("", a.listRoles).Methods("GET")
+	roles.HandleFunc("", a.createRole).Methods("POST")
+	roles.HandleFunc("/{id}", a.updateRole).Methods("PUT")
+	roles.HandleFunc("/{id}", a.deleteRole).Methods("DELETE")
+	roles.HandleFunc("/assign", a.assignUserRole).Methods("POST")
+
 	/* ----- Middleware for requests which requires user to be authenticated ---- */
-	iot.Use(func(handler http.Handler) http.Handler {
+	authMiddleware := func(handler http.Handler) http.Handler {
 		return middleware.Middleware(handler)
-	})
+	}
 
-	dash.Use(func(handler http.Handler) http.Handler {
-		return middleware.Middleware(handler)
-	})
-
-	users.Use(func(handler http.Handler) http.Handler {
-		return middleware.Middleware(handler)
-	})
+	iot.Use(authMiddleware)
+	dash.Use(authMiddleware)
+	users.Use(authMiddleware)
+	tenants.Use(authMiddleware)
+	roles.Use(authMiddleware)
 	/* -------------------------------------------------------------------------- */
 
 	corsOpts := cors.GetCorsConfig()

@@ -4,6 +4,7 @@ import {
   Box,
   Card,
   Checkbox,
+  Chip,
   Icon,
   Stack,
   Tab,
@@ -20,12 +21,22 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  Button
+  Button,
+  Select,
+  MenuItem,
+  FormControl,
 } from '@mui/material';
 import { Scrollbar } from 'src/components/scrollbar';
 import { getInitials } from 'src/utils/get-initials';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import { useState } from 'react';
+
+const ROLE_COLORS = {
+  super_admin: 'error',
+  tenant_admin: 'warning',
+  operator: 'primary',
+  viewer: 'default',
+};
 
 export const CustomersTable = (props) => {
   const {
@@ -38,13 +49,12 @@ export const CustomersTable = (props) => {
     onSelectAll,
     onSelectOne,
     deleteUser,
+    assignRole,
+    canManageRoles = false,
     page = 0,
     rowsPerPage = 0,
     selected = []
   } = props;
-
-  // const selectedSome = (selected.length > 0) && (selected.length < items.length);
-  // const selectedAll = (items.length > 0) && (selected.length === items.length);
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState("")
@@ -56,36 +66,23 @@ export const CustomersTable = (props) => {
           <Table>
             <TableHead>
               <TableRow>
-                {/* <TableCell padding="checkbox"> */}
-                  {/* <Checkbox
-                    checked={selectedAll}
-                    indeterminate={selectedSome}
-                    onChange={(event) => {
-                      if (event.target.checked) {
-                        onSelectAll?.();
-                      } else {
-                        onDeselectAll?.();
-                      }
-                    }}
-                  /> */}
-                {/* </TableCell> */}
                 <TableCell sx={{marginLeft:"30px"}}>
                   Name
                 </TableCell>
                 <TableCell>
                   Email
                 </TableCell>
-                {/* <TableCell>
-                  Location
-                </TableCell> */}
                 <TableCell>
                   Phone
                 </TableCell>
                 <TableCell>
-                  Created At
+                  Role
                 </TableCell>
                 <TableCell>
-                  Level
+                  Tenant
+                </TableCell>
+                <TableCell>
+                  Created At
                 </TableCell>
                 <TableCell>
                   Actions
@@ -95,25 +92,13 @@ export const CustomersTable = (props) => {
             <TableBody>
               {items.map((customer) => {
                 const isSelected = selected.includes(customer._id);
+                const effectiveRole = customer.role || (customer.level == 1 ? 'super_admin' : 'operator');
                 return (
                   <TableRow
                     hover
                     key={customer._id}
                     selected={isSelected}
                   >
-                    {/* <TableCell padding="checkbox"> */}
-                      {/* <Checkbox
-                        checked={isSelected}
-                        onChange={(event) => {
-                          if (event.target.checked) {
-                            console.log(customer._id+" is selected");
-                            onSelectOne(customer._id);
-                          } else {
-                            onDeselectOne(customer._id);
-                          }
-                        }}
-                      /> */}
-                    {/* </TableCell> */}
                     <TableCell align="center" sx={{margin: 'auto', textAlign: 'center'}}>
                       <Stack
                         alignItems="center"
@@ -131,22 +116,40 @@ export const CustomersTable = (props) => {
                     <TableCell>
                       {customer.email}
                     </TableCell>
-                    {/* <TableCell>
-                      {customer.address}
-                    </TableCell> */}
                     <TableCell>
                       {customer.phone}
+                    </TableCell>
+                    <TableCell>
+                      {canManageRoles ? (
+                        <FormControl size="small" variant="standard">
+                          <Select
+                            value={effectiveRole}
+                            onChange={(e) => assignRole && assignRole(customer.email, e.target.value, customer.tenant_id || 'default')}
+                          >
+                            {['super_admin','tenant_admin','operator','viewer'].map((r) => (
+                              <MenuItem key={r} value={r}>{r}</MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      ) : (
+                        <Chip
+                          label={effectiveRole}
+                          color={ROLE_COLORS[effectiveRole] || 'default'}
+                          size="small"
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {customer.tenant_id || 'default'}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       {customer.createdAt}
                     </TableCell>
                     <TableCell>
-                    {customer.level == 1 ? "Admin" : "User"}
-                    </TableCell>
-                    <TableCell>
                       { customer.level == 0 ? <Button
                         onClick={() => {
-                          console.log("delete user: ", customer._id)
                           setUserToDelete(customer.email);
                           setShowDeleteDialog(true);
                         }}

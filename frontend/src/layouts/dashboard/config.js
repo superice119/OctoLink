@@ -55,6 +55,24 @@ export const items = [
     )
   },
   {
+    title: 'Roles',
+    path: '/access-control/roles',
+    icon: (
+      <SvgIcon fontSize="small">
+        <ShieldCheckIcon />
+      </SvgIcon>
+    )
+  },
+  {
+    title: 'Tenants',
+    path: '/access-control/tenants',
+    icon: (
+      <SvgIcon fontSize="small">
+        <BuildingOffice2Icon />
+      </SvgIcon>
+    )
+  },
+  {
     title: 'Settings',
     path: '/settings',
     icon: (

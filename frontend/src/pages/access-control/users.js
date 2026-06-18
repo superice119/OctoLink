@@ -69,6 +69,25 @@ const Page = () => {
       });
   }
 
+  const assignRole = async (email, role, tenantId) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_REST_ENDPOINT || ""}/api/roles/assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: auth.user.token,
+        },
+        body: JSON.stringify({ email, role, tenant_id: tenantId }),
+      });
+      if (res.status === 401) return router.push("/auth/login");
+      if (res.ok) {
+        setUsers(users.map(u => u.email === email ? { ...u, role } : u));
+      }
+    } catch (e) {
+      console.error('Error assigning role:', e);
+    }
+  };
+
 
   const fetchUsers = async () => {
     console.log("fetching users data...")
@@ -133,7 +152,9 @@ const Page = () => {
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Authorization", auth.user.token);
 
-    var raw = JSON.stringify(data);
+    // include role field in user creation payload (defaults to operator)
+    const payload = { ...data, role: data.role || 'operator' };
+    var raw = JSON.stringify(payload);
 
     var requestOptions = {
       method: 'POST',
@@ -262,20 +283,16 @@ const Page = () => {
               <CustomersTable
                 count={users.length}
                 items={users}
-                //onDeselectAll={customersSelection.handleDeselectAll}
                 onDeselectOne={(id) => {
                   setSelected(selected.filter((item) => item !== id))
                 }}
-                //onPageChange={handlePageChange}
-                //onRowsPerPageChange={handleRowsPerPageChange}
-                //onSelectAll={customersSelection.handleSelectAll}
                 onSelectOne={(id) => {
                   setSelected([...selected, id])
                   console.log("added user " + id + " to selected array")
                 }}
-                //page={page}
-                //rowsPerPage={rowsPerPage}
                 deleteUser={deleteUser}
+                assignRole={assignRole}
+                canManageRoles={auth.user?.role === 'super_admin' || auth.user?.role === 'tenant_admin'}
                 selected={selected}
               /> :
               <CircularProgress></CircularProgress>

@@ -35,12 +35,13 @@ export const BackendProvider = (props) => {
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_REST_ENDPOINT || ""}${path}`, requestOptions)
         console.log("status:", response.status)
+        const responseHeaders = response.headers
         if (response.status != 200) {
             if (response.status == 401) {
                 router.push("/auth/login")
             }
             if (response.status == 204 || response.status == 201) {
-                return {status : response.status, result: null}
+                return {status : response.status, result: null, headers: responseHeaders}
             }
             const data = await response.text()
             // setAlert({
@@ -53,25 +54,25 @@ export const BackendProvider = (props) => {
                 // title: "Error",
                 message: `${data}`,
             })
-            return {status : response.status, result: null}
+            return {status : response.status, result: null, headers: responseHeaders}
         }
         if (encoding) {
             console.log("encoding:", encoding)
             if (encoding == "text") {
                 const data = await response.text()
-                return {status: response.status, result: data}
+                return {status: response.status, result: data, headers: responseHeaders}
             }else if (encoding == "blob") {
                 const data = await response.blob()
-                return {status: response.status, result: data}
+                return {status: response.status, result: data, headers: responseHeaders}
             }else if (encoding == "json") {
                 const data = await response.json()
-                return {status: response.status, result: data}
+                return {status: response.status, result: data, headers: responseHeaders}
             }else{
-                return {status: response.status, result: response}
+                return {status: response.status, result: response, headers: responseHeaders}
             }
         }
         const data = await response.json()
-        return {status: response.status, result: data}
+        return {status: response.status, result: data, headers: responseHeaders}
     }
     
     return (

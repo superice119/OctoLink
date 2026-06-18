@@ -1,9 +1,12 @@
 package api
 
 import (
+	"context"
 	"io"
 	"log"
 	"net/http"
+	"net/http/httptest"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/leandrofars/oktopus/internal/bridge"
@@ -276,10 +279,29 @@ func (a *Api) deviceUpdateMsg(w http.ResponseWriter, r *http.Request) {
 	utils.MarshallDecoder(&set, r.Body)
 	msg := usp_utils.NewSetMsg(set)
 
-	err = sendUspMsg(msg, sn, w, a.nc, mtp)
-	if err != nil {
-		return
+	rec := httptest.NewRecorder()
+	err = sendUspMsg(msg, sn, rec, a.nc, mtp)
+
+	// Purge cached GET results for this device so next cached read is fresh.
+	// Use an independent context with timeout — r.Context() is cancelled once the
+	// handler returns, which would cause the goroutine's ListKeys/Delete calls to fail.
+	if err == nil {
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			purgeDeviceParamCache(ctx, a.paramKv, sn)
+		}()
 	}
+
+	for k, vs := range rec.Header() {
+		for _, v := range vs {
+			w.Header().Add(k, v)
+		}
+	}
+	if rec.Code != http.StatusOK {
+		w.WriteHeader(rec.Code)
+	}
+	w.Write(rec.Body.Bytes())
 }
 
 func (a *Api) deviceGetParameterInstances(w http.ResponseWriter, r *http.Request) {

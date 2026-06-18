@@ -71,7 +71,7 @@ export const DevicesParamQuery = () => {
       const { result, status, headers } = await httpRequest(
         endpoint,
         'PUT',
-        { param_paths: paths, max_depth: maxDepth },
+        JSON.stringify({ param_paths: paths, max_depth: maxDepth }),
         null,
       );
 
@@ -123,7 +123,7 @@ export const DevicesParamQuery = () => {
     const { status } = await httpRequest(
       `/api/device/${deviceID}/any/set`,
       'PUT',
-      body,
+      JSON.stringify(body),
       null,
     );
     setSetLoading(false);

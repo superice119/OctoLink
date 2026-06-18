@@ -20,6 +20,7 @@ if (allowedOriginsFromEnv.length > 1) {
 console.log("allowedOrigins:", allowedOrigins)
 
 const JWT_SECRET = process.env.SECRET_API_KEY || "supersecretkey"
+const SUPER_ADMIN_ROLE = 'super_admin'
 
 const io = require('socket.io')(http, {
     cors: {
@@ -39,7 +40,9 @@ io.use((socket, next) => {
     const raw = token.startsWith('Bearer ') ? token.slice(7) : token;
     try {
         const claims = jwt.verify(raw, JWT_SECRET, { algorithms: ['HS256'] });
-        socket.data.email = claims.email || claims.Username || '';
+        socket.data.email = claims.email || '';
+        socket.data.tenantId = claims.tenant_id || '';
+        socket.data.role = claims.role || '';
         next();
     } catch (err) {
         console.warn(`[Auth] Rejected connection: ${err.message}`);
@@ -75,12 +78,21 @@ async function startNatsBridgeWithRef() {
                     const notification = JSON.parse(data);
                     console.log(`[NATS] USP Notify from ${notification.device_sn}`);
 
-                    // Deliver to all authenticated users (tenant:all) + device-specific rooms.
-                    // tenant:all ensures every logged-in user receives notifications without
-                    // needing to call subscribe_device. Device rooms allow device-specific
-                    // subscriptions for future granular filtering.
+                    // Route by tenant ownership (S7 model):
+                    //   - tenant:{owner_tenant_id} room: all users of the owning tenant
+                    //   - device:{sn} room: users who explicitly subscribed to this device
                     const deviceRoom = `device:${notification.device_sn}`;
-                    io.to('tenant:all').to(deviceRoom).emit('usp_notify', notification);
+                    const ownerTenantRoom = notification.owner_tenant_id
+                        ? `tenant:${notification.owner_tenant_id}`
+                        : null;
+
+                    let target = io.to(deviceRoom);
+                    if (ownerTenantRoom) {
+                        target = target.to(ownerTenantRoom);
+                    }
+                    // super_admin room receives all notifications
+                    target = target.to('admin');
+                    target.emit('usp_notify', notification);
 
                     if (WEBHOOK_URL) {
                         fetch(WEBHOOK_URL, {
@@ -111,21 +123,21 @@ startNatsBridgeWithRef();
 
 io.on('connection', (socket) => {
     const email = socket.data.email;
-    console.log(`🚀: ${socket.id} (${email}) connected`);
+    const tenantId = socket.data.tenantId;
+    const role = socket.data.role;
+    const isSuperAdmin = role === SUPER_ADMIN_ROLE;
+    console.log(`🚀: ${socket.id} (${email}, tenant=${tenantId}, role=${role}) connected`);
 
-    // All authenticated users join the shared tenant room so they receive all
-    // device notifications without needing to call subscribe_device explicitly.
-    socket.join('tenant:all');
-
-    // Admin role also joins the legacy admin room for compatibility.
-    const isAdmin = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim()).includes(email);
-    if (isAdmin) {
+    // Join tenant-scoped room based on JWT claims (S7 RBAC alignment).
+    // super_admin joins the shared 'admin' room; all other roles join 'tenant:{tenant_id}'.
+    if (isSuperAdmin) {
         socket.join('admin');
+    } else if (tenantId) {
+        socket.join(`tenant:${tenantId}`);
     }
 
-    // subscribe_device: validate device existence via NATS before joining the room.
-    // This prevents subscribing to non-existent or unauthorised device names.
-    // Full RBAC (per S7) will replace this placeholder with a tenant-ownership check.
+    // subscribe_device: validate device ownership against the caller's tenant (S7 model).
+    // Device lookup via NATS; super_admin bypasses tenant check.
     socket.on('subscribe_device', async (deviceSN) => {
         if (typeof deviceSN !== 'string' || !deviceSN.trim()) return;
         const sn = deviceSN.trim();
@@ -138,14 +150,24 @@ io.on('connection', (socket) => {
         try {
             const msg = await natsConn.request(`adapter.usp.v1.${sn}.device`, new Uint8Array(), { timeout: 3000 });
             const resp = JSON.parse(new TextDecoder().decode(msg.data));
-            if (resp.Code === 200) {
-                socket.join(`device:${sn}`);
-                console.log(`[Sub] ${email} subscribed to device:${sn}`);
-                socket.emit('subscribe_ok', { device_sn: sn });
-            } else {
+            if (resp.Code !== 200) {
                 console.warn(`[Sub] ${email} denied for device:${sn} (code=${resp.Code})`);
                 socket.emit('subscribe_error', { device_sn: sn, reason: 'Device not found or access denied' });
+                return;
             }
+
+            // Tenant ownership check (S7 RBAC): device.Customer must match caller's tenant_id.
+            // super_admin bypasses this check.
+            const deviceOwnerTenant = resp.Msg && resp.Msg.Customer;
+            if (!isSuperAdmin && deviceOwnerTenant && deviceOwnerTenant !== tenantId) {
+                console.warn(`[Sub] ${email} (tenant=${tenantId}) denied for device:${sn} (owner=${deviceOwnerTenant})`);
+                socket.emit('subscribe_error', { device_sn: sn, reason: 'Device not found or access denied' });
+                return;
+            }
+
+            socket.join(`device:${sn}`);
+            console.log(`[Sub] ${email} (tenant=${tenantId}) subscribed to device:${sn}`);
+            socket.emit('subscribe_ok', { device_sn: sn });
         } catch (err) {
             console.warn(`[Sub] device validation failed for ${sn}: ${err.message}`);
             socket.emit('subscribe_error', { device_sn: sn, reason: 'Device not found or access denied' });

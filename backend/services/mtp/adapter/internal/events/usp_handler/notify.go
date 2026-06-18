@@ -15,6 +15,7 @@ const NotificationSubjectPrefix = "notification.v1."
 
 type NotificationEvent struct {
 	DeviceSN       string            `json:"device_sn"`
+	OwnerTenantID  string            `json:"owner_tenant_id"`
 	SubscriptionID string            `json:"subscription_id"`
 	Type           string            `json:"type"`
 	ObjPath        string            `json:"obj_path,omitempty"`
@@ -66,6 +67,14 @@ func (h *Handler) HandleNotify(device, subject string, data []byte, mtpName stri
 		DeviceSN:       device,
 		SubscriptionID: notify.SubscriptionId,
 		Timestamp:      time.Now().UTC(),
+	}
+
+	// Enrich with the device's tenant owner so the socketio server can route
+	// notifications to the correct tenant:{owner_tenant_id} room.
+	if dev, err := h.db.RetrieveDevice(device); err == nil {
+		event.OwnerTenantID = dev.Customer
+	} else {
+		log.Printf("HandleNotify: could not retrieve device %s for tenant routing: %v", device, err)
 	}
 
 	switch n := notify.Notification.(type) {

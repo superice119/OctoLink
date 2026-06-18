@@ -12,6 +12,7 @@ import (
 type Notification struct {
 	ID             primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	DeviceSN       string             `json:"device_sn" bson:"device_sn"`
+	OwnerTenantID  string             `json:"owner_tenant_id" bson:"owner_tenant_id"`
 	SubscriptionID string             `json:"subscription_id" bson:"subscription_id"`
 	Type           string             `json:"type" bson:"type"`
 	ObjPath        string             `json:"obj_path,omitempty" bson:"obj_path,omitempty"`

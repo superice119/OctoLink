@@ -13,6 +13,7 @@ import '../utils/map.css';
 import { useEffect, useState } from 'react';
 import { BackendProvider } from 'src/contexts/backend-context';
 import { AlertProvider } from 'src/contexts/error-context';
+import { NotificationProvider } from 'src/contexts/notification-context';
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -46,6 +47,7 @@ const App = (props) => {
           {/* <WsProvider> */}
           <AlertProvider>
             <BackendProvider>
+              <NotificationProvider>
                 <ThemeProvider theme={theme}>
                   <CssBaseline />
                   <AuthConsumer>
@@ -56,6 +58,7 @@ const App = (props) => {
                     }
                   </AuthConsumer>
                 </ThemeProvider>
+              </NotificationProvider>
             </BackendProvider>
           </AlertProvider>
           {/* </WsProvider> */}

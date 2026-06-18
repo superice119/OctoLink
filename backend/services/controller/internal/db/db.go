@@ -11,12 +11,13 @@ import (
 )
 
 type Database struct {
-	client   *mongo.Client
-	users    *mongo.Collection
-	template *mongo.Collection
-	tenants  *mongo.Collection
-	roles    *mongo.Collection
-	ctx      context.Context
+	client        *mongo.Client
+	users         *mongo.Collection
+	template      *mongo.Collection
+	tenants       *mongo.Collection
+	roles         *mongo.Collection
+	notifications *mongo.Collection
+	ctx           context.Context
 }
 
 func NewDatabase(ctx context.Context, mongoUri string) Database {
@@ -75,6 +76,14 @@ func NewDatabase(ctx context.Context, mongoUri string) Database {
 	})
 	if err != nil {
 		log.Fatalln(err)
+	}
+
+	db.notifications = client.Database("octolink").Collection("notifications")
+	_, err = db.notifications.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.M{"device_sn": 1},
+	})
+	if err != nil {
+		log.Println("Warning: failed to create notifications index:", err)
 	}
 
 	db.seedDefaultData()

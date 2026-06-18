@@ -16,6 +16,7 @@ import BookOpenIcon from '@heroicons/react/24/solid/BookOpenIcon';
 import CommandLineIcon from '@heroicons/react/24/solid/CommandLineIcon';
 import DocumentMagnifyingGlassIcon from '@heroicons/react/24/solid/DocumentMagnifyingGlassIcon';
 import MapIcon from '@heroicons/react/24/solid/MapIcon';
+import BellIcon from '@heroicons/react/24/solid/BellIcon';
 
 export const items = [
   {
@@ -69,6 +70,15 @@ export const items = [
     icon: (
       <SvgIcon fontSize="small">
         <BuildingOffice2Icon />
+      </SvgIcon>
+    )
+  },
+  {
+    title: '通知',
+    path: '/notifications',
+    icon: (
+      <SvgIcon fontSize="small">
+        <BellIcon />
       </SvgIcon>
     )
   },

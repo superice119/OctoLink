@@ -100,6 +100,10 @@ func (a *Api) StartApi() {
 
 	users := r.PathPrefix("/api/users").Subrouter()
 	users.HandleFunc("", a.retrieveUsers).Methods("GET")
+	notifs := r.PathPrefix("/api/notifications").Subrouter()
+	notifs.HandleFunc("", a.listNotifications).Methods("GET")
+	notifs.HandleFunc("/read", a.markNotificationsRead).Methods("PUT")
+	notifs.HandleFunc("", a.deleteNotifications).Methods("DELETE")
 
 	// RBAC: tenant management (super_admin only — enforced inside handlers)
 	tenants := r.PathPrefix("/api/tenants").Subrouter()
@@ -131,6 +135,8 @@ func (a *Api) StartApi() {
 
 	users.Use(authMiddleware)
 	users.Use(middleware.RequirePermission("users:read"))
+
+	notifs.Use(authMiddleware)
 
 	tenants.Use(authMiddleware)
 	// Fine-grained checks are done inside handler (requires tenants:manage / super_admin)

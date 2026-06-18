@@ -98,9 +98,21 @@ func sendUspMsg(msg usp_msg.Msg, sn string, w http.ResponseWriter, nc *nats.Conn
 	return nil
 }
 
+// requireDeviceAccess checks that the caller can access a device by SN.
+// It writes the appropriate HTTP error and returns false if access is denied.
+func (a *Api) requireDeviceAccess(w http.ResponseWriter, r *http.Request, sn string) bool {
+	callerRole, _ := r.Context().Value("role").(string)
+	callerTenantID, _ := r.Context().Value("tenant_id").(string)
+	return checkDeviceTenantAccess(w, a.nc, sn, callerRole, callerTenantID)
+}
+
 func (a *Api) deviceGenericMessage(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
+
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return
@@ -139,6 +151,9 @@ func (a *Api) deviceGenericMessage(w http.ResponseWriter, r *http.Request) {
 func (a *Api) deviceGetMsg(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return
@@ -166,6 +181,9 @@ func (a *Api) deviceGetMsg(w http.ResponseWriter, r *http.Request) {
 func (a *Api) deviceGetSupportedParametersMsg(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return
@@ -193,6 +211,9 @@ func (a *Api) deviceGetSupportedParametersMsg(w http.ResponseWriter, r *http.Req
 func (a *Api) deviceOperateMsg(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return
@@ -220,6 +241,9 @@ func (a *Api) deviceOperateMsg(w http.ResponseWriter, r *http.Request) {
 func (a *Api) deviceNotifyMsg(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return
@@ -258,6 +282,9 @@ func (a *Api) deviceNotifyMsg(w http.ResponseWriter, r *http.Request) {
 func (a *Api) deviceUpdateMsg(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return
@@ -285,6 +312,9 @@ func (a *Api) deviceUpdateMsg(w http.ResponseWriter, r *http.Request) {
 func (a *Api) deviceGetParameterInstances(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return
@@ -312,6 +342,9 @@ func (a *Api) deviceGetParameterInstances(w http.ResponseWriter, r *http.Request
 func (a *Api) deviceCreateMsg(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return
@@ -339,6 +372,9 @@ func (a *Api) deviceCreateMsg(w http.ResponseWriter, r *http.Request) {
 func (a *Api) deviceDeleteMsg(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return

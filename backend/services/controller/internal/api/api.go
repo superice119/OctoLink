@@ -109,10 +109,21 @@ func (a *Api) StartApi() {
 	}
 
 	iot.Use(authMiddleware)
+	// Enforce devices:read on all device routes; devices:write on write methods
+	iot.Use(middleware.RequirePermission("devices:read"))
+	iot.Use(middleware.DeviceWritePermission)
+
 	dash.Use(authMiddleware)
+	dash.Use(middleware.RequirePermission("devices:read"))
+
 	users.Use(authMiddleware)
+	users.Use(middleware.RequirePermission("users:read"))
+
 	tenants.Use(authMiddleware)
+	// Fine-grained checks are done inside handler (requires tenants:manage / super_admin)
+
 	roles.Use(authMiddleware)
+	// Fine-grained checks are done inside handler (requires roles:manage for write ops)
 	/* -------------------------------------------------------------------------- */
 
 	corsOpts := cors.GetCorsConfig()

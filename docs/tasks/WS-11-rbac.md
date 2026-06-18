@@ -220,6 +220,32 @@ curl -X POST /api/auth/register \
 | 版本 | 日期 | 说明 |
 |---|---|---|
 | v1.0 | 2026-06-18 | 初始 RBAC 实现：租户模型、4 内建角色、JWT 升级、Tenant/Role/User API、前端管理界面 |
+| v1.1 | 2026-06-18 | QA 修复：设备租户隔离（全路径）、tenant_admin 跨租户越权修复、RequirePermission 中间件挂载、前端菜单按角色过滤；新增 RBAC 单元测试 |
+
+### v1.1 修复说明
+
+1. **设备租户隔离（Issue 1）**
+   - `retrieveDevices` GET 列表：非 `super_admin` 在 NATS filter 中自动追加 `customer: callerTenantID`
+   - `retrieveDevices` GET 单台：验证 `device.Customer == callerTenantID`，否则 403
+   - `retrieveDevices` DELETE：对每个 SN 做归属校验，跨租户 403
+   - 全部 USP per-SN handlers（`deviceGenericMessage` / `deviceGetMsg` / `deviceUpdateMsg` / `deviceCreateMsg` / `deviceDeleteMsg` 等）：新增 `requireDeviceAccess()` 检查
+   - 新增 `checkDeviceTenantAccess()` / `Api.requireDeviceAccess()` 辅助函数
+
+2. **assignUserRole 越权（Issue 2）**
+   - `tenant_admin` 调用前先 `FindUser(req.Email)`，验证 `targetUser.TenantID == callerTenantID`；不匹配 403
+
+3. **deleteUser 越权（Issue 3）**
+   - `tenant_admin` 删除他人前先 `FindUser(target)`，验证租户归属；跨租户 403
+
+4. **RequirePermission 中间件挂载（Issue 4）**
+   - `iot` 路由组：叠加 `RequirePermission("devices:read")` + `DeviceWritePermission`（PUT/POST/DELETE 要求 `devices:write`）
+   - `dash` 路由组：叠加 `RequirePermission("devices:read")`
+   - `users` 路由组：叠加 `RequirePermission("users:read")`
+   - 新增 `DeviceWritePermission` 中间件（GET/HEAD 放行，其余方法要求 `devices:write`）
+
+5. **前端菜单可见性（Issue 5）**
+   - `side-nav.js` 引入 `ROUTE_ROLE_REQUIREMENTS` 映射，在 items 渲染前按 `auth.user.role` 过滤
+   - `Users`/`Roles`/`Tenants` 菜单仅对 `tenant_admin` 以上角色可见
 
 ---
 

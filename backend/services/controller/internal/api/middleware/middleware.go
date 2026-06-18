@@ -45,3 +45,20 @@ func RequirePermission(permission string) func(http.Handler) http.Handler {
 		})
 	}
 }
+
+// DeviceWritePermission enforces devices:write on non-GET/HEAD requests.
+func DeviceWritePermission(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet || r.Method == http.MethodHead {
+			next.ServeHTTP(w, r)
+			return
+		}
+		role, _ := r.Context().Value("role").(string)
+		if !auth.CheckPermission(role, "devices:write") {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}

@@ -21,11 +21,27 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { items } from './config';
 import { SideNavItem } from './side-nav-item';
 import { useTheme } from '@mui/material';
+import { useAuthContext } from 'src/contexts/auth-context';
+
+// Routes that require specific roles to appear in the nav
+const ROUTE_ROLE_REQUIREMENTS = {
+  '/access-control/tenants': ['super_admin'],
+  '/access-control/roles': ['super_admin', 'tenant_admin'],
+  '/access-control/users': ['super_admin', 'tenant_admin'],
+};
+
+function isNavItemVisible(item, userRole) {
+  const required = ROUTE_ROLE_REQUIREMENTS[item.path];
+  if (!required) return true; // no restriction
+  return required.includes(userRole);
+}
 
 export const SideNav = (props) => {
   const { open, onClose } = props;
   const pathname = usePathname();
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
+  const { user } = useAuthContext();
+  const userRole = user?.role || '';
 
   const theme = useTheme();
 
@@ -116,7 +132,7 @@ export const SideNav = (props) => {
               m: 0
             }}
           >
-            {items.map((item) => {
+            {items.filter((item) => isNavItemVisible(item, userRole)).map((item) => {
               const active = isItemActive(pathname, item.path);
 
               return (

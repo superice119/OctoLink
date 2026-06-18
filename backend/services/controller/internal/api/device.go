@@ -19,6 +19,9 @@ import (
 )
 
 func (a *Api) retrieveDevices(w http.ResponseWriter, r *http.Request) {
+	callerRole, _ := r.Context().Value("role").(string)
+	callerTenantID, _ := r.Context().Value("tenant_id").(string)
+
 	if r.Method == http.MethodDelete {
 		id := r.URL.Query().Get("id")
 		if id == "" {
@@ -31,6 +34,21 @@ func (a *Api) retrieveDevices(w http.ResponseWriter, r *http.Request) {
 		}
 
 		ids := strings.Split(id, ",")
+
+		// For non-super_admin, verify each device belongs to the caller's tenant
+		if callerRole != db.RoleSuperAdmin {
+			for _, sn := range ids {
+				device, err := getDeviceInfo(w, sn, a.nc)
+				if err != nil {
+					return
+				}
+				if device.Customer != callerTenantID {
+					w.WriteHeader(http.StatusForbidden)
+					json.NewEncoder(w).Encode("device " + sn + " does not belong to your tenant")
+					return
+				}
+			}
+		}
 
 		msg, err := bridge.NatsReq[int64](local.NATS_ADAPTER_SUBJECT+"devices.delete", utils.Marshall(ids), w, a.nc)
 		if err != nil {
@@ -54,6 +72,12 @@ func (a *Api) retrieveDevices(w http.ResponseWriter, r *http.Request) {
 	if id != "" {
 		device, err := getDeviceInfo(w, id, a.nc)
 		if err != nil {
+			return
+		}
+		// Tenant isolation: non-super_admin can only view devices in their tenant
+		if callerRole != db.RoleSuperAdmin && device.Customer != callerTenantID {
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode("device does not belong to your tenant")
 			return
 		}
 		err = json.NewEncoder(w).Encode(device)
@@ -133,6 +157,11 @@ func (a *Api) retrieveDevices(w http.ResponseWriter, r *http.Request) {
 		"status_order": statusOrder,
 		"limit":        page_size,
 		"skip":         skip,
+	}
+
+	// Tenant isolation: non-super_admin only see devices in their tenant
+	if callerRole != db.RoleSuperAdmin && callerTenantID != "" {
+		filter["customer"] = callerTenantID
 	}
 
 	if version != "" {

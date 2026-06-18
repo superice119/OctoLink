@@ -198,6 +198,18 @@ func (a *Api) assignUserRole(w http.ResponseWriter, r *http.Request) {
 	targetTenant := req.TenantID
 	if callerRole == db.RoleTenantAdmin {
 		targetTenant = callerTenantID
+		// Verify target user currently belongs to caller's tenant
+		targetUser, err := a.db.FindUser(req.Email)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode("target user not found")
+			return
+		}
+		if targetUser.TenantID != callerTenantID {
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode("target user does not belong to your tenant")
+			return
+		}
 	}
 
 	if err := a.db.UpdateUserRole(req.Email, req.Role, targetTenant); err != nil {

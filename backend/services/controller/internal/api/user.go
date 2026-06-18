@@ -145,16 +145,42 @@ func (a *Api) deleteUser(w http.ResponseWriter, r *http.Request) {
 	callerRole := rUser.EffectiveRole()
 	userEmail := mux.Vars(r)["user"]
 
-	// Users can delete themselves; admins can delete anyone in their scope
-	if rUser.Email == userEmail || callerRole == db.RoleSuperAdmin || callerRole == db.RoleTenantAdmin {
+	// Users can always delete themselves
+	if rUser.Email == userEmail {
 		if err := a.db.DeleteUser(userEmail); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(err)
+		}
+		return
+	}
+
+	if callerRole == db.RoleSuperAdmin {
+		if err := a.db.DeleteUser(userEmail); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(err)
+		}
+		return
+	}
+
+	if callerRole == db.RoleTenantAdmin {
+		// Verify target user belongs to the same tenant before deleting
+		targetUser, err := a.db.FindUser(userEmail)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-	} else {
-		w.WriteHeader(http.StatusForbidden)
+		if targetUser.TenantID != rUser.TenantID {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		if err := a.db.DeleteUser(userEmail); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(err)
+		}
+		return
 	}
+
+	w.WriteHeader(http.StatusForbidden)
 }
 
 func (a *Api) changePassword(w http.ResponseWriter, r *http.Request) {

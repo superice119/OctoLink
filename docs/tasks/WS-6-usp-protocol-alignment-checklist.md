@@ -1,9 +1,11 @@
 # WS-6 (S2) — USP/TR-369 协议联调接口清单
 
-**日期:** 2026-06-17
+**日期:** 2026-06-17（v1）/ 2026-06-18（v2 prpl 专项更新）
 **作者:** Protocol_Pro
 **依赖:** WS-6 obuspa 双方案评估报告(`docs/tasks/WS-6-obuspa-evaluation.md`) / TR-369 规范(`docs/references/tr-x69-specifications.md`)
 **对照基准:** BBF TR-369 (USP) + TR-181 Issue-2 Amendment-15
+
+> **v2 选型更新（2026-06-18）**：MVP 终端栈已定 **prpl Ambiorix**（iopsys 保留为商用备选）；统一 Controller 地址更新为 **39.97.250.156**。本文档在 v1 stack-agnostic 基础上补充 §9 prpl 专项 onboarding 指南。
 
 ---
 
@@ -22,15 +24,17 @@
 
 | 项 | 值 | 来源 |
 |---|---|---|
-| Controller 地址 | `ws://39.105.150.244:8080/ws/agent` | 验证报告 §3.5 |
+| **Controller 地址（生产）** | `ws://39.97.250.156:8080/ws/agent` | 选型决策 2026-06-17（统一 Controller） |
+| Controller 地址（旧测试，已弃用） | ~~`ws://39.105.150.244:8080/ws/agent`~~ | 已废止，勿用 |
 | Controller EndpointID | `oktopusController` | 验证报告 §3.5 坑#1 |
 | Agent EndpointID 格式 | `os::<ManufacturerOUI>-<SerialNumber>` | TR-369 §2.3.2 |
 | Agent EndpointID 示例(prpl) | `os::00256D-OpenWrtGateway001` | 验证报告 §2.6 |
 | Agent EndpointID 示例(iopsys) | `os::00256D-iopsysGateway001` | 验证报告 §3.5 坑#2 |
 | MTP | USP over WebSocket(RFC 6455) | TR-369 §8.1 |
 | Controller 授权角色 | `assigned_role_name='full_access'` → `AssignedRole=ControllerTrust.Role.1` | 验证报告 §3.5 坑#4 |
+| **MVP 终端栈** | **prpl Ambiorix**（obuspa v11.0.2） | 选型决策 2026-06-17 |
 | 数据模型版本(prpl) | `RootDataModelVersion=2.17` | 验证报告 §2.5 |
-| 数据模型版本(iopsys) | `RootDataModelVersion=2.20` | 验证报告 §3.6 |
+| 数据模型版本(iopsys，备选） | `RootDataModelVersion=2.20` | 验证报告 §3.6 |
 | 消息编码 | Protocol Buffers(proto3),封装于 USP Record | TR-369 §5 |
 | USP Record 外层类型 | `NoSessionContext` 或 `SessionContext` | TR-369 §5.1 |
 
@@ -575,7 +579,7 @@ Msg {
 | `Device.LocalAgent.Controller.{i}.AssignedRole` | string | RW | 对应信任等级路径，如 `ControllerTrust.Role.1`（full_access） |
 | `Device.LocalAgent.MTP.{i}.Enable` | boolean | RW | 启用 MTP |
 | `Device.LocalAgent.MTP.{i}.Protocol` | string | RW | `"WebSocket"` / `"MQTT"` / `"STOMP"` |
-| `Device.LocalAgent.MTP.{i}.WebSocket.URL` | string | RW | `ws://39.105.150.244:8080/ws/agent` |
+| `Device.LocalAgent.MTP.{i}.WebSocket.URL` | string | RW | `ws://39.97.250.156:8080/ws/agent`（生产） |
 | `Device.LocalAgent.MTP.{i}.WebSocket.EnableEncryption` | boolean | RW | false（ws://）/ true（wss://） |
 | `Device.LocalAgent.Subscription.{i}.Enable` | boolean | RW | 启用订阅 |
 | `Device.LocalAgent.Subscription.{i}.ID` | string | RW | 订阅标识符（唯一键） |
@@ -683,18 +687,21 @@ Msg {
 
 ---
 
-## 6. 已验证联调要点（搬运自评估报告，直接可用）
+## 6. 已验证联调要点（prpl Ambiorix MVP 栈）
 
 以下各项均已在 MT7621 + ImmortalWrt 24.10 上端到端验证（见 `docs/tasks/WS-6-obuspa-evaluation.md`），**换机时按此清单核对即可**：
+
+> **Controller 地址统一使用 `39.97.250.156`（旧测试地址 `39.105.150.244` 已停用）**
 
 | # | 必做操作 | 影响 | 对应配置 |
 |---|---|---|---|
 | 1 | obuspa 配置 `controller EndpointID 'oktopusController'` | 否则 USP Record from_id 不匹配，所有消息被丢弃 | `obuspa/files/etc/config/obuspa` |
 | 2 | obuspa 配置 `localagent EndpointID 'os::<OUI>-<serial>'` | 否则端点 ID 随机，无法路由 | 同上 |
-| 3 | Oktopus 后台对该 EndpointID 设置 `assigned_role_name='full_access'` | 否则 Parameters discovery 无权限，界面转圈 | Oktopus Admin UI 或 API |
-| 4 | iopsys 专项：创建 `/etc/board-db/config/device`，写入 ManufacturerOUI/SerialNumber 等 | 否则 DeviceInfo 所有身份字段空，EndpointID 自动推导失败 | `sysmngr/files/etc/board-db/config/device` |
-| 5 | iopsys 专项：`disable sysntpd` 后启 timemngr | 否则 timemngr 的 ntpd 绑 :123 失败，被 procd 反复拉起，Time 状态永远 Unsynchronized | `timemngr/files/etc/uci-defaults/97-disable-sysntpd-for-timemngr` |
-| 6 | ManufacturerOUI（board-db）与 EndpointID 中的 OUI 段必须一致 | 否则身份校验失败（Controller 可能拒接） | 手动核对 |
+| 3 | obuspa 配置 MTP WebSocket URL 为 `ws://39.97.250.156:8080/ws/agent` | 连接到正确的生产 Controller | `obuspa/files/etc/config/obuspa` |
+| 4 | Oktopus 后台对该 EndpointID 设置 `assigned_role_name='full_access'` | 否则 Parameters discovery 无权限，界面转圈 | Oktopus Admin UI 或 API |
+| 5 | iopsys 专项：创建 `/etc/board-db/config/device`，写入 ManufacturerOUI/SerialNumber 等 | 否则 DeviceInfo 所有身份字段空，EndpointID 自动推导失败 | `sysmngr/files/etc/board-db/config/device` |
+| 6 | iopsys 专项：`disable sysntpd` 后启 timemngr | 否则 timemngr 的 ntpd 绑 :123 失败，被 procd 反复拉起，Time 状态永远 Unsynchronized | `timemngr/files/etc/uci-defaults/97-disable-sysntpd-for-timemngr` |
+| 7 | ManufacturerOUI（board-db / prpl DeviceInfo plugin）与 EndpointID 中的 OUI 段必须一致 | 否则身份校验失败（Controller 可能拒接） | 手动核对 |
 
 ---
 
@@ -702,7 +709,7 @@ Msg {
 
 | # | 测试用例 | 方法 | 期望结果 |
 |---|---|---|---|
-| T1 | 设备首次上线 | Wireshark 抓 WS 端口 8080；过滤 `websocket` | 看到 USP Record(NoSessionContext) 的 NOTIFY(OnBoardRequest) |
+| T1 | 设备首次上线 | Wireshark 抓 WS 端口 8080；过滤 `websocket`，目标 `39.97.250.156` | 看到 USP Record(NoSessionContext) 的 NOTIFY(OnBoardRequest) |
 | T2 | GET DeviceInfo | `/api/v1/devices/{id}` GET | 返回 Manufacturer/SerialNumber/SoftwareVersion 均非空 |
 | T3 | GET 不存在路径 | GET `Device.NonExistent.` | 返回 err_code 9003 |
 | T4 | SET 只读参数 | POST `/parameters` {`Device.DeviceInfo.Manufacturer`:"xxx"} | 返回 err_code 9008 (Non-Writable Parameter) |
@@ -717,8 +724,93 @@ Msg {
 
 ---
 
-## 8. 变更记录
+## 9. prpl Ambiorix MVP 栈 — 专项 Onboarding 指南
 
-| 日期 | 变更 |
-|---|---|
-| 2026-06-17 | 初始版本，产出 USP/TR-369 全消息类型格式规范、TR-181 核心参数路径清单、S1 API 字段对齐映射、已验证联调要点、QA 测试用例索引。 |
+> 本节面向 prpl Ambiorix 终端栈（已选型 MVP），基于 obuspa v11.0.2、TR-181 RootDataModelVersion 2.17、WebSocket MTP。参考：`docs/tasks/WS-6-obuspa-evaluation.md §二`。
+
+### 9.1 prpl Feed 关键版本清单
+
+| 包 | 版本 | 说明 |
+|---|---|---|
+| `obuspa` | **v11.0.2**（commit `92ecb4c0`） | BroadbandForum 上游；WebSocket MTP 默认开启（prpl feed 将 `OBUSPA_WEBSOCKET_MTP_SUPPORT` 改为 `default y`） |
+| `amxrt` | v2.6.1 | Ambiorix runtime |
+| `tr181-device` | v0.36.0 | Device. 主树 |
+| `deviceinfo-manager` | v2.41.0 | DeviceInfo 子树 |
+| `time-manager` | v2.11.0 | Time/NTP 子树 |
+| `tr181-security` | v0.14.0 | Security 子树 |
+| `tr181-gatewayinfo` | v0.2.0 | GatewayInfo 子树 |
+
+### 9.2 prpl 架构简图
+
+```
+Oktopus (39.97.250.156:8080)
+    │  WebSocket (RFC 6455)
+    ▼
+obuspa v11.0.2  ←──(USP Record, Protobuf)──→ TR-369 Controller
+    │ amxb (ubus/usp bus)
+    ├──► tr181-device          (Device. 主树骨架)
+    ├──► deviceinfo-manager    (Device.DeviceInfo.*)
+    ├──► time-manager          (Device.Time.*)
+    ├──► tr181-security        (Device.Security.*)
+    └──► tr181-gatewayinfo     (Device.GatewayInfo.*)
+
+运行时：amxrt 加载各插件 ODL；mod-amxb-ubus/usp 提供 amxb 后端
+数据模型版本：Device.LocalAgent.RootDataModelVersion = "2.17"
+```
+
+### 9.3 onboarding 配置文件（`/etc/config/obuspa`）
+
+```uci
+# /etc/config/obuspa  — prpl Ambiorix 联调基线配置
+# 对照 TR-369 §7.2 Agent MTP 配置
+
+config localagent
+    option EndpointID  'os::00256D-<SerialNumber>'   # TR-369 §2.3.2；<SerialNumber> 从 DeviceInfo 或 /proc/sys/kernel/hostname 获取
+    option WebsocketPort '8080'
+
+config controller
+    option EndpointID  'oktopusController'            # 必须与 Oktopus 服务端完全一致
+    option WebsocketURL 'ws://39.97.250.156:8080/ws/agent'  # 生产 Controller（2026-06-17 更新）
+    option assigned_role_name 'full_access'           # ControllerTrust.Role.1；缺少则 discovery 无权限
+```
+
+> ⚠️ **坑**：`ws://` 无 TLS 时 Controller 信任等级落到 `Untrusted`（Role.2），无读权限。**必须**在 Oktopus 控制台对该 EndpointID 显式设置 `assigned_role_name='full_access'`（REST API: `PUT /api/v1/controllers/{id}` 设 `assigned_role_name`）。
+
+### 9.4 prpl 数据模型特性（v2.17）
+
+- **开箱即可读全树**：prpl 默认所有参数均可 GET，无须额外 board-db 配置（对比 iopsys 需创建 `/etc/board-db/config/device`）。
+- **身份字段来源**：`deviceinfo-manager` 从内核/OpenWrt UCI 读取 `Manufacturer`/`ModelName`/`SerialNumber`，无外部依赖。
+- **已验证可读子树**：`DeviceInfo / Time / LocalAgent / STOMP / MQTT / UnixDomainSockets / USPServices / InterfaceStack / IP / Ethernet / WiFi（若 radio 存在）`。
+- **写操作限制**：`obuspa` 自身不直接写系统配置；写操作由对应 `tr181-*` plugin 通过 amxb RPC 落地（各 plugin 负责其子树）。
+
+### 9.5 prpl 启动顺序与依赖
+
+```
+1. 启动 Ambiorix 总线后端：mod-amxb-ubus（需 ubusd 已运行）
+2. 启动 amxrt + plugins（按 ODL requires 顺序）：
+   tr181-device → deviceinfo-manager → time-manager → tr181-security → tr181-gatewayinfo
+3. 启动 obuspa（依赖 amxrt/plugin 已就绪）：
+   obuspa -p /etc/obuspa.cfg -r /etc/obuspa.db
+
+诊断命令：
+   amx-cli /tmp/usp/agent.sock            # 进入 amx CLI，可手动 GET/SET
+   obuspa-cli                             # obuspa 内置 CLI（v11.x 支持）
+   logread | grep obuspa                  # 查看 WS 连接日志
+```
+
+### 9.6 prpl onboarding 成功标志
+
+1. `logread | grep obuspa` 出现 `Connected to Controller` 且无 `Untrusted` 告警。
+2. Oktopus 管理界面设备列表显示 EndpointID `os::00256D-*` 状态 **Online**。
+3. `GET Device.LocalAgent.RootDataModelVersion` 返回 `"2.17"`。
+4. `GET Device.DeviceInfo.Manufacturer` 返回非空字符串。
+5. `GET Device.LocalAgent.Controller.1.AssignedRole` 返回 `ControllerTrust.Role.1`（full_access）。
+
+---
+
+## 10. 变更记录
+
+| 日期 | 版本 | 变更 |
+|---|---|---|
+| 2026-06-17 | v1 | 初始版本，产出 USP/TR-369 全消息类型格式规范、TR-181 核心参数路径清单、S1 API 字段对齐映射、已验证联调要点、QA 测试用例索引。 |
+| 2026-06-18 | v2 | 选型确认 prpl Ambiorix 为 MVP；Controller 地址更新为 `39.97.250.156`；新增 §9 prpl 专项 onboarding 指南（obuspa v11.0.2、RootDataModelVersion 2.17、WebSocket 配置、启动顺序与成功标志）；§6 联调要点补充 #3（MTP URL 更新）；T1 测试用例更新目标 IP。 |

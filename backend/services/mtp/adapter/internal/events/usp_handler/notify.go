@@ -146,8 +146,9 @@ func (h *Handler) sendNotifyResponse(device, msgID, subscriptionID, mtpName stri
 		return
 	}
 
-	// Publish on the adapter-specific response topic so the MTP layer forwards it.
-	topic := mtpName + "-adapter.usp.v1." + device + ".notify_resp"
+	// Publish on the adapter-specific .api topic: the MTP adapter (ws/mqtt/stomp)
+	// subscribes to {mtp}-adapter.usp.v1.*.api and forwards the payload to the device.
+	topic := mtpName + "-adapter.usp.v1." + device + ".api"
 	if err := h.nc.Publish(topic, protoRecord); err != nil {
 		log.Printf("sendNotifyResponse: publish error: %v", err)
 	} else {

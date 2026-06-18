@@ -54,11 +54,15 @@ let users = []
 const NATS_URL = process.env.NATS_URL || "nats://nats:4222"
 const WEBHOOK_URL = process.env.WEBHOOK_URL || ""
 
-async function startNatsBridge() {
+// natsConn is set once the NATS bridge starts; used for device-existence validation.
+let natsConn = null;
+
+async function startNatsBridgeWithRef() {
     try {
         const { connect, StringCodec } = require('nats');
         const sc = StringCodec();
         const nc = await connect({ servers: NATS_URL });
+        natsConn = nc;
         console.log(`[NATS] Connected to ${NATS_URL}`);
 
         const sub = nc.subscribe("notification.v1.>");
@@ -71,11 +75,12 @@ async function startNatsBridge() {
                     const notification = JSON.parse(data);
                     console.log(`[NATS] USP Notify from ${notification.device_sn}`);
 
-                    // Deliver only to authenticated sockets subscribed to this device.
-                    // Each socket joins a room named after the authenticated user's email
-                    // (tenant identity). A global admin room "admin" receives all events.
+                    // Deliver to all authenticated users (tenant:all) + device-specific rooms.
+                    // tenant:all ensures every logged-in user receives notifications without
+                    // needing to call subscribe_device. Device rooms allow device-specific
+                    // subscriptions for future granular filtering.
                     const deviceRoom = `device:${notification.device_sn}`;
-                    io.to(deviceRoom).to('admin').emit('usp_notify', notification);
+                    io.to('tenant:all').to(deviceRoom).emit('usp_notify', notification);
 
                     if (WEBHOOK_URL) {
                         fetch(WEBHOOK_URL, {
@@ -98,30 +103,52 @@ async function startNatsBridge() {
 
     } catch (err) {
         console.error('[NATS] Connection failed:', err);
-        setTimeout(startNatsBridge, 5000);
+        setTimeout(startNatsBridgeWithRef, 5000);
     }
 }
 
-startNatsBridge();
-// --------------------------------------------------------
+startNatsBridgeWithRef();
 
 io.on('connection', (socket) => {
     const email = socket.data.email;
     console.log(`🚀: ${socket.id} (${email}) connected`);
 
-    // Every authenticated user joins their personal tenant room (email-scoped).
-    socket.join(`user:${email}`);
-    // Admin role gets all notifications; non-admins subscribe to specific devices.
+    // All authenticated users join the shared tenant room so they receive all
+    // device notifications without needing to call subscribe_device explicitly.
+    socket.join('tenant:all');
+
+    // Admin role also joins the legacy admin room for compatibility.
     const isAdmin = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim()).includes(email);
     if (isAdmin) {
         socket.join('admin');
     }
 
-    // Allow frontend to subscribe to notifications for specific devices.
-    socket.on('subscribe_device', (deviceSN) => {
-        if (typeof deviceSN === 'string' && deviceSN.trim()) {
-            socket.join(`device:${deviceSN.trim()}`);
-            console.log(`[Sub] ${email} subscribed to device:${deviceSN.trim()}`);
+    // subscribe_device: validate device existence via NATS before joining the room.
+    // This prevents subscribing to non-existent or unauthorised device names.
+    // Full RBAC (per S7) will replace this placeholder with a tenant-ownership check.
+    socket.on('subscribe_device', async (deviceSN) => {
+        if (typeof deviceSN !== 'string' || !deviceSN.trim()) return;
+        const sn = deviceSN.trim();
+
+        if (!natsConn) {
+            socket.emit('subscribe_error', { device_sn: sn, reason: 'Service unavailable' });
+            return;
+        }
+
+        try {
+            const msg = await natsConn.request(`adapter.usp.v1.${sn}.device`, new Uint8Array(), { timeout: 3000 });
+            const resp = JSON.parse(new TextDecoder().decode(msg.data));
+            if (resp.Code === 200) {
+                socket.join(`device:${sn}`);
+                console.log(`[Sub] ${email} subscribed to device:${sn}`);
+                socket.emit('subscribe_ok', { device_sn: sn });
+            } else {
+                console.warn(`[Sub] ${email} denied for device:${sn} (code=${resp.Code})`);
+                socket.emit('subscribe_error', { device_sn: sn, reason: 'Device not found or access denied' });
+            }
+        } catch (err) {
+            console.warn(`[Sub] device validation failed for ${sn}: ${err.message}`);
+            socket.emit('subscribe_error', { device_sn: sn, reason: 'Device not found or access denied' });
         }
     });
 

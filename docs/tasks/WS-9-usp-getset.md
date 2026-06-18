@@ -191,3 +191,4 @@ go build ./...  # ✅ 0 errors, 0 warnings（见本 PR CI 输出）
 | 日期 | 改动 |
 |------|------|
 | 2026-06-18 | 初版实现：后端 `usp-param-cache` KV bucket + `/get/cached` 端点 + SET 后缓存清除；前端 `DevicesParamQuery` 组件 + Query 标签页；本文档 |
+| 2026-06-18 | fix(s5): 修复 CORS `ExposedHeaders` 缺失问题 — 在 `backend/services/controller/internal/api/cors/cors.go` 增加 `ExposedHeaders: []string{"X-Cache"}`，使跨域 fetch 下浏览器可读取 `X-Cache` 响应头，缓存命中提示正常显示 |

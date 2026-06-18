@@ -107,7 +107,13 @@ export const NotificationProvider = ({ children }) => {
     }
 
     fetchHistory();
-    const socket = io(process.env.NEXT_PUBLIC_WS_ENDPOINT || 'http://localhost:5000');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+    const socket = io(process.env.NEXT_PUBLIC_WS_ENDPOINT || 'http://localhost:5000', {
+      auth: { token: token || '' },
+    });
+    socket.on('connect_error', (err) => {
+      console.error('[Notifications] Socket connect error:', err.message);
+    });
     socket.on('usp_notify', (notification) => {
       console.log('[Notifications] Real-time notify:', notification);
       dispatch({ type: ACTIONS.ADD, payload: { ...notification, read: false } });

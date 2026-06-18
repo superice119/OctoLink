@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/OktopUSP/oktopus/backend/services/mtp/adapter/internal/usp"
 	"github.com/OktopUSP/oktopus/backend/services/mtp/adapter/internal/usp/usp_msg"
 	"github.com/OktopUSP/oktopus/backend/services/mtp/adapter/internal/usp/usp_record"
 	"google.golang.org/protobuf/proto"
@@ -24,20 +25,33 @@ type NotificationEvent struct {
 	Timestamp      time.Time         `json:"timestamp"`
 }
 
-func (h *Handler) HandleNotify(device, subject string, data []byte, ack func()) {
+func (h *Handler) HandleNotify(device, subject string, data []byte, mtpName string, ack func()) {
 	defer ack()
 	log.Printf("Device %s sent USP Notify, subject: %s", device, subject)
 
 	var record usp_record.Record
-	err := proto.Unmarshal(data, &record)
-	if err != nil {
+	if err := proto.Unmarshal(data, &record); err != nil {
 		log.Printf("HandleNotify: failed to unmarshal USP Record: %v", err)
 		return
 	}
 
+	// Extract USP Msg payload from whichever record context the agent used.
+	var msgPayload []byte
+	switch {
+	case record.GetNoSessionContext() != nil:
+		msgPayload = record.GetNoSessionContext().GetPayload()
+	case record.GetSessionContext() != nil:
+		// SessionContextRecord.Payload is [][]byte (segmented); concatenate.
+		for _, chunk := range record.GetSessionContext().GetPayload() {
+			msgPayload = append(msgPayload, chunk...)
+		}
+	default:
+		log.Printf("HandleNotify: unsupported record type for device %s", device)
+		return
+	}
+
 	var message usp_msg.Msg
-	err = proto.Unmarshal(record.GetNoSessionContext().Payload, &message)
-	if err != nil {
+	if err := proto.Unmarshal(msgPayload, &message); err != nil {
 		log.Printf("HandleNotify: failed to unmarshal USP Msg: %v", err)
 		return
 	}
@@ -79,6 +93,11 @@ func (h *Handler) HandleNotify(device, subject string, data []byte, ack func()) 
 		event.Type = "unknown"
 	}
 
+	// Send NotifyResp when the agent requests a response (send_resp=true).
+	if notify.SendResp {
+		h.sendNotifyResponse(device, message.Header.MsgId, notify.SubscriptionId, mtpName)
+	}
+
 	payload, err := json.Marshal(event)
 	if err != nil {
 		log.Printf("HandleNotify: failed to marshal notification: %v", err)
@@ -86,10 +105,52 @@ func (h *Handler) HandleNotify(device, subject string, data []byte, ack func()) 
 	}
 
 	subjectOut := NotificationSubjectPrefix + device
-	err = h.nc.Publish(subjectOut, payload)
-	if err != nil {
+	if err := h.nc.Publish(subjectOut, payload); err != nil {
 		log.Printf("HandleNotify: failed to publish notification: %v", err)
 	} else {
 		log.Printf("HandleNotify: published notification to %s", subjectOut)
+	}
+}
+
+// sendNotifyResponse builds a USP NotifyResp and sends it back to the device
+// via the same MTP adapter that delivered the original Notify.
+func (h *Handler) sendNotifyResponse(device, msgID, subscriptionID, mtpName string) {
+	respMsg := usp_msg.Msg{
+		Header: &usp_msg.Header{
+			MsgId:   msgID,
+			MsgType: usp_msg.Header_NOTIFY_RESP,
+		},
+		Body: &usp_msg.Body{
+			MsgBody: &usp_msg.Body_Response{
+				Response: &usp_msg.Response{
+					RespType: &usp_msg.Response_NotifyResp{
+						NotifyResp: &usp_msg.NotifyResp{
+							SubscriptionId: subscriptionID,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	protoMsg, err := proto.Marshal(&respMsg)
+	if err != nil {
+		log.Printf("sendNotifyResponse: marshal error: %v", err)
+		return
+	}
+
+	record := usp.NewUspRecord(protoMsg, device, h.cid)
+	protoRecord, err := proto.Marshal(&record)
+	if err != nil {
+		log.Printf("sendNotifyResponse: marshal record error: %v", err)
+		return
+	}
+
+	// Publish on the adapter-specific response topic so the MTP layer forwards it.
+	topic := mtpName + "-adapter.usp.v1." + device + ".notify_resp"
+	if err := h.nc.Publish(topic, protoRecord); err != nil {
+		log.Printf("sendNotifyResponse: publish error: %v", err)
+	} else {
+		log.Printf("sendNotifyResponse: sent NotifyResp to %s (subscriptionId=%s)", device, subscriptionID)
 	}
 }

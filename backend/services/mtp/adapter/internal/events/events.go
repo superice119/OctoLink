@@ -55,7 +55,7 @@ func StartEventsListener(ctx context.Context, js jetstream.JetStream, uspHandler
 				case "info":
 					uspHandler.HandleDeviceInfo(device, msg.Subject(), data, event, func() { msg.Ack() })
 				case "notify":
-					uspHandler.HandleNotify(device, msg.Subject(), data, func() { msg.Ack() })
+					uspHandler.HandleNotify(device, msg.Subject(), data, event, func() { msg.Ack() })
 				default:
 					log.Printf("Unknown message type received, subject: %s", msg.Subject())
 					msg.Ack()

@@ -2,6 +2,7 @@ const dotenv = require('dotenv')
 dotenv.config();
 dotenv.config({ path: `.env.local`, override: true });
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const app = express();
 const PORT = 5000;
 
@@ -18,6 +19,8 @@ if (allowedOriginsFromEnv.length > 1) {
 }
 console.log("allowedOrigins:", allowedOrigins)
 
+const JWT_SECRET = process.env.SECRET_API_KEY || "supersecretkey"
+
 const io = require('socket.io')(http, {
     cors: {
         origin: allowedOrigins
@@ -25,6 +28,25 @@ const io = require('socket.io')(http, {
 });
 
 app.use(cors());
+
+// -------- JWT auth middleware for Socket.IO --------
+// Clients must pass token in handshake auth: { token: "Bearer <jwt>" }
+io.use((socket, next) => {
+    const token = socket.handshake.auth && socket.handshake.auth.token;
+    if (!token) {
+        return next(new Error('Authentication required: no token provided'));
+    }
+    const raw = token.startsWith('Bearer ') ? token.slice(7) : token;
+    try {
+        const claims = jwt.verify(raw, JWT_SECRET, { algorithms: ['HS256'] });
+        socket.data.email = claims.email || claims.Username || '';
+        next();
+    } catch (err) {
+        console.warn(`[Auth] Rejected connection: ${err.message}`);
+        next(new Error('Authentication failed: invalid or expired token'));
+    }
+});
+// ---------------------------------------------------
 
 let users = []
 
@@ -48,7 +70,12 @@ async function startNatsBridge() {
                     const data = sc.decode(msg.data);
                     const notification = JSON.parse(data);
                     console.log(`[NATS] USP Notify from ${notification.device_sn}`);
-                    io.emit('usp_notify', notification);
+
+                    // Deliver only to authenticated sockets subscribed to this device.
+                    // Each socket joins a room named after the authenticated user's email
+                    // (tenant identity). A global admin room "admin" receives all events.
+                    const deviceRoom = `device:${notification.device_sn}`;
+                    io.to(deviceRoom).to('admin').emit('usp_notify', notification);
 
                     if (WEBHOOK_URL) {
                         fetch(WEBHOOK_URL, {
@@ -79,15 +106,37 @@ startNatsBridge();
 // --------------------------------------------------------
 
 io.on('connection', (socket) => {
-    console.log(`🚀: ${socket.id} user just connected!`);
+    const email = socket.data.email;
+    console.log(`🚀: ${socket.id} (${email}) connected`);
+
+    // Every authenticated user joins their personal tenant room (email-scoped).
+    socket.join(`user:${email}`);
+    // Admin role gets all notifications; non-admins subscribe to specific devices.
+    const isAdmin = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim()).includes(email);
+    if (isAdmin) {
+        socket.join('admin');
+    }
+
+    // Allow frontend to subscribe to notifications for specific devices.
+    socket.on('subscribe_device', (deviceSN) => {
+        if (typeof deviceSN === 'string' && deviceSN.trim()) {
+            socket.join(`device:${deviceSN.trim()}`);
+            console.log(`[Sub] ${email} subscribed to device:${deviceSN.trim()}`);
+        }
+    });
+
+    socket.on('unsubscribe_device', (deviceSN) => {
+        if (typeof deviceSN === 'string' && deviceSN.trim()) {
+            socket.leave(`device:${deviceSN.trim()}`);
+        }
+    });
 
     socket.on("callUser", ({ userToCall, signalData, from }) => {
-        console.log("user to call:", userToCall)
         let index = users.findIndex(x => x.name === userToCall)
         if (index >= 0) {
             io.to(users[index].id).emit("callUser", { signal: signalData, from });
         } else {
-            console.log("There is no user named " + userToCall + " or he/she is offline")
+            console.log("No user named " + userToCall + " found or offline")
         }
     });
 
@@ -97,18 +146,14 @@ io.on('connection', (socket) => {
 
     socket.on("newuser", (data) => {
         let index = users.findIndex(x => x.name === data.name)
-        if (index >= 0) {
-            console.log("user already exists, but got connected with other id")
-        } else {
+        if (index < 0) {
             users.push(data)
         }
-        console.log(data)
-        console.log("total users: ", users)
         io.emit('users', users)
     })
 
     socket.on('disconnect', () => {
-        console.log('🔥: A user disconnected');
+        console.log(`🔥: ${socket.id} (${email}) disconnected`);
         let index = users.findIndex(x => x.id === socket.id)
         if (index >= 0) {
             users.splice(index, 1)

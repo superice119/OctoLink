@@ -202,6 +202,9 @@ func (a *Api) deviceWifi(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	sn := vars["sn"]
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 
 	device, err := getDeviceInfo(w, sn, a.nc)
 	if err != nil {

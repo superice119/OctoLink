@@ -116,3 +116,32 @@ func getDevices(w http.ResponseWriter, filter map[string]interface{}, nc *nats.C
 	}
 	return nil, err
 }
+
+// checkDeviceTenantAccess verifies that the caller can access a device by SN.
+// It writes the appropriate HTTP error and returns false if access is denied.
+// super_admin bypasses the check.
+func checkDeviceTenantAccess(w http.ResponseWriter, nc *nats.Conn, sn, callerRole, callerTenantID string) bool {
+	if callerRole == "super_admin" {
+		return true
+	}
+	device, err := getDeviceInfo(w, sn, nc)
+	if err != nil {
+		return false
+	}
+	if device.Customer != callerTenantID {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write(utils.Marshall("device does not belong to your tenant"))
+		return false
+	}
+	return true
+}
+
+// checkUserTenantOwnership returns true when the caller is allowed to operate on a
+// user whose current tenant is targetUserTenantID.
+// super_admin may act on any user; tenant_admin may only act within their tenant.
+func checkUserTenantOwnership(callerRole, callerTenantID, targetUserTenantID string) bool {
+	if callerRole == "super_admin" {
+		return true
+	}
+	return callerTenantID == targetUserTenantID
+}

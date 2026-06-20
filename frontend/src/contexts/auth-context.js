@@ -84,12 +84,27 @@ export const AuthProvider = (props) => {
 
     console.log("isAuthenticated: ", isAuthenticated)
     if (isAuthenticated) {
+      const storedToken = localStorage.getItem("token");
+      let userRole = 'operator';
+      let tenantId = 'default';
+      try {
+        if (storedToken) {
+          const payload = JSON.parse(atob(storedToken.split('.')[1]));
+          userRole = payload.role || 'operator';
+          tenantId = payload.tenant_id || 'default';
+        }
+      } catch (e) {
+        console.error('Failed to decode stored JWT payload', e);
+      }
+
       const user = {
         id: '5e86809283e28b96d2d38537',
         avatar: '/assets/avatars/default-avatar.png',
         name: window.sessionStorage.getItem('email'),
         email: 'anika.visser@devias.io',
-        token: localStorage.getItem("token")
+        token: storedToken,
+        role: userRole,
+        tenantId: tenantId,
       };
 
       dispatch({
@@ -166,12 +181,25 @@ export const AuthProvider = (props) => {
       console.error(err);
     }
 
+    // Decode JWT payload to extract role and tenant_id
+    let userRole = 'operator';
+    let tenantId = 'default';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userRole = payload.role || 'operator';
+      tenantId = payload.tenant_id || 'default';
+    } catch (e) {
+      console.error('Failed to decode JWT payload', e);
+    }
+
     const user = {
       id: '5e86809283e28b96d2d38537',
       avatar: '/assets/avatars/default-avatar.png',
       name: window.sessionStorage.getItem('email'),
       email: email,
-      token: token
+      token: token,
+      role: userRole,
+      tenantId: tenantId,
     };
 
     localStorage.setItem("token", token)

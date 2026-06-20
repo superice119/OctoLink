@@ -14,7 +14,20 @@ import (
 )
 
 func (a *Api) retrieveUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := a.db.FindAllUsers()
+	callerRole, _ := r.Context().Value("role").(string)
+	callerTenantID, _ := r.Context().Value("tenant_id").(string)
+
+	var (
+		users []map[string]interface{}
+		err   error
+	)
+
+	// super_admin sees all users; everyone else only sees their tenant
+	if callerRole == db.RoleSuperAdmin {
+		users, err = a.db.FindAllUsers()
+	} else {
+		users, err = a.db.FindUsersByTenant(callerTenantID)
+	}
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -51,7 +64,12 @@ func (a *Api) registerUser(w http.ResponseWriter, r *http.Request) {
 
 	//Check if user which is requesting creation has the necessary privileges
 	rUser, err := a.db.FindUser(email)
-	if rUser.Level != db.AdminUser {
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	callerRole := rUser.EffectiveRole()
+	if callerRole != db.RoleSuperAdmin && callerRole != db.RoleTenantAdmin {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -63,6 +81,27 @@ func (a *Api) registerUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Assign defaults: new users created by tenant_admin belong to that tenant
+	if user.Role == "" {
+		user.Role = db.RoleOperator
+	}
+	if user.TenantID == "" {
+		user.TenantID = rUser.TenantID
+		if user.TenantID == "" {
+			user.TenantID = db.DefaultTenantID
+		}
+	}
+	// tenant_admin cannot create users outside their own tenant and cannot
+	// grant global roles (privilege escalation prevention)
+	if callerRole == db.RoleTenantAdmin {
+		user.TenantID = rUser.TenantID
+		if db.IsGlobalRole(user.Role) {
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode("tenant_admin cannot create users with global roles such as super_admin")
+			return
+		}
+	}
+	// Keep legacy Level field in sync
 	user.Level = db.NormalUser
 
 	if err := user.HashPassword(user.Password); err != nil {
@@ -103,24 +142,51 @@ func (a *Api) deleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Check if user which is requesting deletion has the necessary privileges
 	rUser, err := a.db.FindUser(email)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	callerRole := rUser.EffectiveRole()
 	userEmail := mux.Vars(r)["user"]
 
-	if rUser.Email == userEmail || (rUser.Level == db.AdminUser) { //Admin can delete any account
+	// Users can always delete themselves
+	if rUser.Email == userEmail {
 		if err := a.db.DeleteUser(userEmail); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(err)
+		}
+		return
+	}
+
+	if callerRole == db.RoleSuperAdmin {
+		if err := a.db.DeleteUser(userEmail); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(err)
+		}
+		return
+	}
+
+	if callerRole == db.RoleTenantAdmin {
+		// Verify target user belongs to the same tenant before deleting
+		targetUser, err := a.db.FindUser(userEmail)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-	} else {
-		w.WriteHeader(http.StatusForbidden)
+		if !checkUserTenantOwnership(callerRole, rUser.TenantID, targetUser.TenantID) {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		if err := a.db.DeleteUser(userEmail); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(err)
+		}
+		return
 	}
+
+	w.WriteHeader(http.StatusForbidden)
 }
 
 func (a *Api) changePassword(w http.ResponseWriter, r *http.Request) {
@@ -182,6 +248,8 @@ func (a *Api) registerAdminUser(w http.ResponseWriter, r *http.Request) {
 			}
 
 			user.Level = db.AdminUser
+			user.Role = db.RoleSuperAdmin
+			user.TenantID = db.DefaultTenantID
 
 			if err := user.HashPassword(user.Password); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -207,7 +275,7 @@ func (a *Api) registerAdminUser(w http.ResponseWriter, r *http.Request) {
 
 	//Check if user which is requesting creation has the necessary privileges
 	rUser, err := a.db.FindUser(email)
-	if rUser.Level != db.AdminUser {
+	if rUser.EffectiveRole() != db.RoleSuperAdmin {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
@@ -220,6 +288,10 @@ func (a *Api) registerAdminUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.Level = db.AdminUser
+	user.Role = db.RoleSuperAdmin
+	if user.TenantID == "" {
+		user.TenantID = db.DefaultTenantID
+	}
 
 	if err := user.HashPassword(user.Password); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -287,7 +359,7 @@ func (a *Api) generateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.GenerateJWT(user.Email, user.Name)
+	token, err := auth.GenerateJWT(user.Email, user.Name, user.EffectiveRole(), user.EffectiveTenantID())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,6 +14,8 @@ type Database struct {
 	client   *mongo.Client
 	users    *mongo.Collection
 	template *mongo.Collection
+	tenants  *mongo.Collection
+	roles    *mongo.Collection
 	ctx      context.Context
 }
 
@@ -34,6 +37,8 @@ func NewDatabase(ctx context.Context, mongoUri string) Database {
 
 	log.Println("Connected to MongoDB-->", mongoUri)
 
+	db.ctx = ctx
+
 	db.users = client.Database("account-mngr").Collection("users")
 	indexField := bson.M{"email": 1}
 	_, err = db.users.Indexes().CreateOne(ctx, mongo.IndexModel{
@@ -54,7 +59,53 @@ func NewDatabase(ctx context.Context, mongoUri string) Database {
 		log.Fatalln(err)
 	}
 
-	db.ctx = ctx
+	db.tenants = client.Database("account-mngr").Collection("tenants")
+	_, err = db.tenants.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.M{"name": 1},
+		Options: options.Index().SetUnique(true),
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	db.roles = client.Database("account-mngr").Collection("roles")
+	_, err = db.roles.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.M{"name": 1, "tenant_id": 1},
+		Options: options.Index().SetUnique(true),
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	db.seedDefaultData()
 
 	return db
+}
+
+// seedDefaultData ensures the default tenant and built-in roles exist.
+func (d *Database) seedDefaultData() {
+	// Default tenant
+	err := d.CreateTenant(Tenant{
+		ID:          DefaultTenantID,
+		Name:        "Default",
+		Description: "Default system tenant",
+		CreatedAt:   time.Now().Unix(),
+	})
+	if err != nil && err != ErrorTenantExists {
+		log.Println("Warning: could not seed default tenant:", err)
+	}
+
+	// Built-in system roles
+	for name, perms := range BuiltinRolePermissions {
+		role := Role{
+			ID:          name,
+			Name:        name,
+			TenantID:    "",
+			Permissions: perms,
+			IsSystem:    true,
+		}
+		if err := d.CreateRole(role); err != nil && err != ErrorRoleExists {
+			log.Println("Warning: could not seed role", name, ":", err)
+		}
+	}
 }

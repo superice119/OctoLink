@@ -20,6 +20,9 @@ var errDeviceModelNotFound = errors.New("device model not found")
 func (a *Api) cwmpGenericMsg(w http.ResponseWriter, r *http.Request) {
 
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -44,6 +47,9 @@ func (a *Api) cwmpGenericMsg(w http.ResponseWriter, r *http.Request) {
 
 func (a *Api) cwmpGetParameterNamesMsg(w http.ResponseWriter, r *http.Request) {
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -62,6 +68,9 @@ func (a *Api) cwmpGetParameterNamesMsg(w http.ResponseWriter, r *http.Request) {
 
 func (a *Api) cwmpGetParameterAttributesMsg(w http.ResponseWriter, r *http.Request) {
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -80,6 +89,9 @@ func (a *Api) cwmpGetParameterAttributesMsg(w http.ResponseWriter, r *http.Reque
 
 func (a *Api) cwmpGetParameterValuesMsg(w http.ResponseWriter, r *http.Request) {
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -98,6 +110,9 @@ func (a *Api) cwmpGetParameterValuesMsg(w http.ResponseWriter, r *http.Request) 
 
 func (a *Api) cwmpSetParameterValuesMsg(w http.ResponseWriter, r *http.Request) {
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -116,6 +131,9 @@ func (a *Api) cwmpSetParameterValuesMsg(w http.ResponseWriter, r *http.Request) 
 
 func (a *Api) cwmpAddObjectMsg(w http.ResponseWriter, r *http.Request) {
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -134,6 +152,9 @@ func (a *Api) cwmpAddObjectMsg(w http.ResponseWriter, r *http.Request) {
 
 func (a *Api) cwmpDeleteObjectMsg(w http.ResponseWriter, r *http.Request) {
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 
 	payload, err := io.ReadAll(r.Body)
 	if err != nil {

@@ -91,9 +91,15 @@ func (a *Api) registerUser(w http.ResponseWriter, r *http.Request) {
 			user.TenantID = db.DefaultTenantID
 		}
 	}
-	// tenant_admin cannot create users outside their own tenant
+	// tenant_admin cannot create users outside their own tenant and cannot
+	// grant global roles (privilege escalation prevention)
 	if callerRole == db.RoleTenantAdmin {
 		user.TenantID = rUser.TenantID
+		if db.IsGlobalRole(user.Role) {
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode("tenant_admin cannot create users with global roles such as super_admin")
+			return
+		}
 	}
 	// Keep legacy Level field in sync
 	user.Level = db.NormalUser
@@ -353,7 +359,7 @@ func (a *Api) generateToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := auth.GenerateJWT(user.Email, user.Name, user.EffectiveRole(), user.TenantID)
+	token, err := auth.GenerateJWT(user.Email, user.Name, user.EffectiveRole(), user.EffectiveTenantID())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

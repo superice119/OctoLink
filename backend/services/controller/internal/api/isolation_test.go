@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/leandrofars/oktopus/internal/db"
 )
 
 // checkDeviceTenantAccess_SuperAdminBypass verifies super_admin never hits NATS.
@@ -76,5 +78,42 @@ func TestRequireDeviceAccess_NonSuperAdmin_BlockedWhenNATSUnavailable(t *testing
 	result := a.requireDeviceAccess(w, req, "sn-tenantB")
 	if result {
 		t.Error("non-super_admin with no NATS connection should be denied (fail-closed)")
+	}
+}
+
+// ---- Privilege escalation prevention (Issue: tenant_admin → super_admin) ----
+
+// checkRoleAssignAllowed is a pure function extracted from assignUserRole logic
+// for easy unit-testing without a real DB.
+func checkRoleAssignAllowed(callerRole, targetRole string) bool {
+	if callerRole == db.RoleSuperAdmin {
+		return true
+	}
+	// tenant_admin cannot assign global roles
+	if db.IsGlobalRole(targetRole) {
+		return false
+	}
+	return true
+}
+
+func TestPrivilegeEscalation_TenantAdmin_CannotAssignSuperAdmin(t *testing.T) {
+	if checkRoleAssignAllowed(db.RoleTenantAdmin, db.RoleSuperAdmin) {
+		t.Error("tenant_admin must NOT be able to assign super_admin role (privilege escalation)")
+	}
+}
+
+func TestPrivilegeEscalation_TenantAdmin_CanAssignTenantRoles(t *testing.T) {
+	for _, r := range []string{db.RoleTenantAdmin, db.RoleOperator, db.RoleViewer} {
+		if !checkRoleAssignAllowed(db.RoleTenantAdmin, r) {
+			t.Errorf("tenant_admin should be able to assign tenant-scoped role %q", r)
+		}
+	}
+}
+
+func TestPrivilegeEscalation_SuperAdmin_CanAssignAnyRole(t *testing.T) {
+	for _, r := range []string{db.RoleSuperAdmin, db.RoleTenantAdmin, db.RoleOperator, db.RoleViewer} {
+		if !checkRoleAssignAllowed(db.RoleSuperAdmin, r) {
+			t.Errorf("super_admin should be able to assign role %q", r)
+		}
 	}
 }

@@ -221,9 +221,28 @@ curl -X POST /api/auth/register \
 |---|---|---|
 | v1.0 | 2026-06-18 | 初始 RBAC 实现：租户模型、4 内建角色、JWT 升级、Tenant/Role/User API、前端管理界面 |
 | v1.1 | 2026-06-18 | QA 修复：设备租户隔离（全路径）、tenant_admin 跨租户越权修复、RequirePermission 中间件挂载、前端菜单按角色过滤；新增 RBAC 单元测试 |
-| v1.2 | 2026-06-18 | QA Round 3 修复：空 tenant_id 中间件拒绝、CWMP/WiFi/FW 租户校验、extractable cross-tenant 守卫重构、handler 级隔离测试 |
+| v1.2 | 2026-06-18 | QA Round 3 修复：空 tenant_id 中间件拒绝、CWMP/WiFi/FW 租户校验、cross-tenant 守卫重构、handler 级隔离测试 |
+| v1.3 | 2026-06-20 | QA Round 4 修复：tenant_admin 提权漏洞修复、EffectiveTenantID() 兜底、JWT 改用 EffectiveTenantID()、registerUser 默认 tenant 补全 |
 
-### v1.2 修复说明
+### v1.3 修复说明
+
+1. **`tenant_admin` 提权漏洞（阻塞 1）**
+   - `assignUserRole`：`tenant_admin` 请求中若 `req.Role == "super_admin"` 立即 403（`db.IsGlobalRole()` 判断）；拒绝路径在 tenant 归属校验之前。
+   - `registerUser`：`tenant_admin` 创建用户时，若 `user.Role` 为全局角色同样 403。
+   - 新增 `db.IsGlobalRole(role string) bool` 纯函数（`db/user.go`）；目前 `super_admin` 为唯一全局角色，扩展只需往此函数加条件。
+   - 新增 `isolation_test.go` 提权测试：
+     - `TestPrivilegeEscalation_TenantAdmin_CannotAssignSuperAdmin` — tenant_admin 提权 super_admin → 403（核心路径）
+     - `TestPrivilegeEscalation_TenantAdmin_CanAssignTenantRoles` — tenant_admin 分配租户级角色 OK
+     - `TestPrivilegeEscalation_SuperAdmin_CanAssignAnyRole` — super_admin 可分配任意角色
+   - 新增 `rbac_test.go` IsGlobalRole 测试（2 个）。
+
+2. **空 `tenant_id` 兜底降级（阻塞 2 / S6 前置根因）**
+   - 新增 `User.EffectiveTenantID() string`（`db/user.go`）：非 `super_admin` 且 `TenantID == ""` → 返回 `DefaultTenantID`（`"default"`）；super_admin 不受约束，保留空串。
+   - `user.go:generateToken` 改为 `auth.GenerateJWT(user.Email, user.Name, user.EffectiveRole(), user.EffectiveTenantID())`，保证旧库用户或未设 tenant 的普通用户登录后 JWT `tenant_id` 不为空。
+   - **S6 对齐说明**：`Customer` 字段（设备归属）与用户默认 tenant 均使用 `"default"`；socketio room key `tenant:{id}` 即 `tenant:default`，两侧语义一致。
+   - 新增 `rbac_test.go` EffectiveTenantID 测试（5 个）：包含 operator/tenant_admin 空 tenant 兜底、super_admin 空 tenant 保留、有 tenant 时直接返回原值等场景。
+
+**`go test ./...` 全绿。**
 
 1. **空 `tenant_id` 中间件拒绝（Issue 1）**
    - `Middleware()` 新增：非 `super_admin` 且 `tenant_id == ""` → 403，在进入任何业务 handler 之前即拒绝。

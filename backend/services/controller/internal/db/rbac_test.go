@@ -65,3 +65,57 @@ func TestBuiltinRolePermissions_AllRolesPresent(t *testing.T) {
 		}
 	}
 }
+
+// ---- EffectiveTenantID tests ----
+
+func TestEffectiveTenantID_WithExplicitTenant(t *testing.T) {
+	u := User{TenantID: "acme", Role: RoleOperator}
+	if u.EffectiveTenantID() != "acme" {
+		t.Errorf("expected acme, got %q", u.EffectiveTenantID())
+	}
+}
+
+func TestEffectiveTenantID_EmptyNonSuperAdmin_FallsBackToDefault(t *testing.T) {
+	u := User{TenantID: "", Role: RoleOperator}
+	if u.EffectiveTenantID() != DefaultTenantID {
+		t.Errorf("non-super_admin with empty TenantID should fall back to %q, got %q", DefaultTenantID, u.EffectiveTenantID())
+	}
+}
+
+func TestEffectiveTenantID_EmptyTenantAdmin_FallsBackToDefault(t *testing.T) {
+	u := User{TenantID: "", Role: RoleTenantAdmin}
+	if u.EffectiveTenantID() != DefaultTenantID {
+		t.Errorf("tenant_admin with empty TenantID should fall back to %q, got %q", DefaultTenantID, u.EffectiveTenantID())
+	}
+}
+
+func TestEffectiveTenantID_SuperAdmin_EmptyPreserved(t *testing.T) {
+	u := User{TenantID: "", Role: RoleSuperAdmin}
+	// super_admin is cross-tenant; empty tenant_id is valid
+	if u.EffectiveTenantID() != "" {
+		t.Errorf("super_admin with empty TenantID should return empty string, got %q", u.EffectiveTenantID())
+	}
+}
+
+func TestEffectiveTenantID_LegacyAdminUser_EmptyPreserved(t *testing.T) {
+	u := User{Level: AdminUser} // no Role set → EffectiveRole() == super_admin
+	if u.EffectiveTenantID() != "" {
+		t.Errorf("legacy AdminUser with empty TenantID should return empty string, got %q", u.EffectiveTenantID())
+	}
+}
+
+// ---- IsGlobalRole tests ----
+
+func TestIsGlobalRole_SuperAdminIsGlobal(t *testing.T) {
+	if !IsGlobalRole(RoleSuperAdmin) {
+		t.Error("super_admin must be a global role")
+	}
+}
+
+func TestIsGlobalRole_TenantRolesAreNotGlobal(t *testing.T) {
+	for _, r := range []string{RoleTenantAdmin, RoleOperator, RoleViewer} {
+		if IsGlobalRole(r) {
+			t.Errorf("role %q must NOT be a global role", r)
+		}
+	}
+}

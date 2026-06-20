@@ -197,6 +197,12 @@ func (a *Api) assignUserRole(w http.ResponseWriter, r *http.Request) {
 	// tenant_admin can only assign users within their own tenant
 	targetTenant := req.TenantID
 	if callerRole == db.RoleTenantAdmin {
+		// tenant_admin cannot grant global roles (e.g. super_admin)
+		if db.IsGlobalRole(req.Role) {
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode("tenant_admin cannot assign global roles such as super_admin")
+			return
+		}
 		targetTenant = callerTenantID
 		// Verify target user currently belongs to caller's tenant
 		targetUser, err := a.db.FindUser(req.Email)

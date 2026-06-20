@@ -26,8 +26,26 @@ type User struct {
 	Role     string     `json:"role,omitempty"      bson:"role,omitempty"`
 }
 
-// EffectiveRole returns the user's role, falling back to Level-based defaults for
-// legacy users that pre-date the RBAC migration.
+// EffectiveTenantID returns the user's tenant_id, falling back to DefaultTenantID
+// for legacy users or users created without an explicit tenant.
+// super_admin is not tenant-scoped; for all other roles an empty tenant_id is
+// replaced with the default tenant so JWT claims are never empty.
+func (u *User) EffectiveTenantID() string {
+	if u.TenantID != "" {
+		return u.TenantID
+	}
+	if u.EffectiveRole() == RoleSuperAdmin {
+		return u.TenantID // super_admin may legitimately have no tenant
+	}
+	return DefaultTenantID
+}
+
+// IsGlobalRole reports whether role is a global (cross-tenant) role that only
+// super_admin is allowed to grant. tenant_admin may never elevate a user to one
+// of these roles.
+func IsGlobalRole(role string) bool {
+	return role == RoleSuperAdmin
+}
 func (u *User) EffectiveRole() string {
 	if u.Role != "" {
 		return u.Role

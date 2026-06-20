@@ -159,8 +159,9 @@ func (a *Api) retrieveDevices(w http.ResponseWriter, r *http.Request) {
 		"skip":         skip,
 	}
 
-	// Tenant isolation: non-super_admin only see devices in their tenant
-	if callerRole != db.RoleSuperAdmin && callerTenantID != "" {
+	// Tenant isolation: non-super_admin only see devices in their tenant.
+	// After middleware enforcement, callerTenantID is always non-empty for non-super_admin.
+	if callerRole != db.RoleSuperAdmin {
 		filter["customer"] = callerTenantID
 	}
 

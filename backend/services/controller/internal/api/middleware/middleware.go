@@ -8,6 +8,8 @@ import (
 )
 
 // Middleware validates the JWT and injects email, role and tenant_id into the request context.
+// Non-super_admin requests with an empty tenant_id claim are rejected with 403:
+// a valid token must always carry a tenant for scoped enforcement.
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
@@ -23,6 +25,13 @@ func Middleware(next http.Handler) http.Handler {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
+
+			// Non-super_admin without a tenant_id cannot be scoped correctly — reject early.
+			if info.Role != "super_admin" && info.TenantID == "" {
+				w.WriteHeader(http.StatusForbidden)
+				return
+			}
+
 			ctx := context.WithValue(r.Context(), "email", info.Email)
 			ctx = context.WithValue(ctx, "role", info.Role)
 			ctx = context.WithValue(ctx, "tenant_id", info.TenantID)

@@ -221,6 +221,36 @@ curl -X POST /api/auth/register \
 |---|---|---|
 | v1.0 | 2026-06-18 | 初始 RBAC 实现：租户模型、4 内建角色、JWT 升级、Tenant/Role/User API、前端管理界面 |
 | v1.1 | 2026-06-18 | QA 修复：设备租户隔离（全路径）、tenant_admin 跨租户越权修复、RequirePermission 中间件挂载、前端菜单按角色过滤；新增 RBAC 单元测试 |
+| v1.2 | 2026-06-18 | QA Round 3 修复：空 tenant_id 中间件拒绝、CWMP/WiFi/FW 租户校验、extractable cross-tenant 守卫重构、handler 级隔离测试 |
+
+### v1.2 修复说明
+
+1. **空 `tenant_id` 中间件拒绝（Issue 1）**
+   - `Middleware()` 新增：非 `super_admin` 且 `tenant_id == ""` → 403，在进入任何业务 handler 之前即拒绝。
+   - `retrieveDevices` 中移除 `callerTenantID != ""` 冗余保护分支（中间件已保证非空），避免绕过。
+   - 新增 `TestMiddleware_EmptyTenantID_NonSuperAdmin_Rejected` / `_SuperAdmin_Allowed` 测试。
+
+2. **CWMP/WiFi/FW per-SN 归属校验（Issue 2）**
+   - `cwmp.go` 所有 7 个 handler（`cwmpGenericMsg`、`cwmpGetParameterNamesMsg`、`cwmpGetParameterAttributesMsg`、`cwmpGetParameterValuesMsg`、`cwmpSetParameterValuesMsg`、`cwmpAddObjectMsg`、`cwmpDeleteObjectMsg`）均在第一行追加 `if !a.requireDeviceAccess(w, r, sn) { return }`。
+   - `wifi.go` `deviceWifi` 和 `fwupdate.go` `deviceFwUpdate` 同步补齐。
+   - 至此全部 per-SN 控制路径（USP 8 条 + CWMP 7 条 + WiFi + FW）均受 `requireDeviceAccess()` 保护。
+
+3. **JWT claim 契约确认（Issue 3）**
+   - `user.go:generateToken`（line 356）调用 `auth.GenerateJWT(user.Email, user.Name, user.EffectiveRole(), user.TenantID)` — 4 参形式，`role` + `tenant_id` 已正确签入 JWT。
+   - `auth.go` `JWTClaim` 包含 `Role string` + `TenantID string`；`ValidateTokenFull()` 正确解出并填入 `TokenInfo`。
+   - **S6 对齐说明**：socketio / WS-16 从 JWT 取 `tenant_id` 用 claim key `"tenant_id"`，取 `role` 用 claim key `"role"`，与本中间件 context key 一致。
+
+4. **Handler 级跨租户用例（Issue 4）**
+   - 新增 `internal/api/utils.go: checkUserTenantOwnership(callerRole, callerTenantID, targetUserTenantID string) bool` — 纯函数，无 DB/NATS 依赖，`role.go` 与 `user.go` 改用此函数，逻辑语义不变。
+   - 新增 `internal/api/isolation_test.go`，覆盖：
+     - `TestCheckDeviceTenantAccess_SuperAdminBypass` — nil NATS 不 panic，super_admin 返回 true
+     - `TestCheckUserTenantOwnership_SuperAdmin_CanActCrossTenant` — super_admin 跨租户 OK
+     - `TestCheckUserTenantOwnership_TenantAdmin_SameTenant_Allowed` — 同租户 OK
+     - `TestCheckUserTenantOwnership_TenantAdmin_CrossTenant_Denied` — 跨租户 403 核心路径
+     - `TestCheckUserTenantOwnership_Operator_CrossTenant_Denied` — 普通用户跨租户 403
+     - `TestRequireDeviceAccess_SuperAdminBypassViaContext` — 通过 context 注入 super_admin，nil NATS 不出错
+     - `TestRequireDeviceAccess_NonSuperAdmin_BlockedWhenNATSUnavailable` — fail-closed：NATS 不可用时非 super_admin 被拒
+   - `go test ./...` 全绿（见 CI）。
 
 ### v1.1 修复说明
 

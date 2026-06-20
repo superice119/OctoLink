@@ -169,7 +169,7 @@ func (a *Api) deleteUser(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		if targetUser.TenantID != rUser.TenantID {
+		if !checkUserTenantOwnership(callerRole, rUser.TenantID, targetUser.TenantID) {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}

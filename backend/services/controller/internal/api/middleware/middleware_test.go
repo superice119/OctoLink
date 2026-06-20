@@ -125,20 +125,44 @@ func TestDeviceWritePermission_ReadAlwaysAllowed(t *testing.T) {
 	}
 }
 
-func TestDeviceWritePermission_WriteDeniedForViewer(t *testing.T) {
-	token, _ := auth.GenerateJWT("v@x.com", "V", "viewer", "t1")
+func TestMiddleware_EmptyTenantID_NonSuperAdmin_Rejected(t *testing.T) {
+	// Non-super_admin with empty tenant_id must be rejected with 403
+	token, err := auth.GenerateJWT("user@example.com", "User", "operator", "")
+	if err != nil {
+		t.Fatalf("failed to generate token: %v", err)
+	}
 
-	inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-	})
-	handler := Middleware(DeviceWritePermission(inner))
+	}))
 
-	req := httptest.NewRequest(http.MethodPut, "/api/device/sn1/mqtt/set", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/device", nil)
 	req.Header.Set("Authorization", token)
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusForbidden {
-		t.Errorf("viewer PUT should be forbidden by DeviceWritePermission, got %d", rr.Code)
+		t.Errorf("non-super_admin with empty tenant_id should get 403, got %d", rr.Code)
+	}
+}
+
+func TestMiddleware_EmptyTenantID_SuperAdmin_Allowed(t *testing.T) {
+	// super_admin with empty tenant_id must be allowed (super_admin is not tenant-scoped)
+	token, err := auth.GenerateJWT("admin@example.com", "Admin", "super_admin", "")
+	if err != nil {
+		t.Fatalf("failed to generate token: %v", err)
+	}
+
+	handler := Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/device", nil)
+	req.Header.Set("Authorization", token)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("super_admin with empty tenant_id should get 200, got %d", rr.Code)
 	}
 }

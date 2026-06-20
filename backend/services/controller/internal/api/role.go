@@ -205,7 +205,7 @@ func (a *Api) assignUserRole(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode("target user not found")
 			return
 		}
-		if targetUser.TenantID != callerTenantID {
+		if !checkUserTenantOwnership(callerRole, callerTenantID, targetUser.TenantID) {
 			w.WriteHeader(http.StatusForbidden)
 			json.NewEncoder(w).Encode("target user does not belong to your tenant")
 			return

@@ -20,6 +20,9 @@ type fwUpdate struct {
 
 func (a *Api) deviceFwUpdate(w http.ResponseWriter, r *http.Request) {
 	sn := getSerialNumberFromRequest(r)
+	if !a.requireDeviceAccess(w, r, sn) {
+		return
+	}
 	mtp, err := getMtpFromRequest(r, w)
 	if err != nil {
 		return

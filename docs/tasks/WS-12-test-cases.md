@@ -170,6 +170,7 @@ tests/
 | E2E-SIM-002 | P0 | 设备详情到参数读取 | 在 UI 打开模拟设备详情并读取 DeviceInfo | UI 展示与 API / USP 响应一致 | Playwright |
 | E2E-SIM-003 | P0 | Set 后通知闭环 | UI 修改可写参数，监听通知 | Set 成功，通知到达，最终 Get 值一致 | Playwright + Pytest |
 | E2E-SIM-004 | P1 | 多设备并行 | 同时连接 10 台 agent-sim | 设备路由不串线，EndpointID 唯一 | Pytest |
+| E2E-SIM-005 | P1 | 3-5 台终端基础接入 | 同时启动 3-5 台 agent-sim，各用不同 SerialNumber / EndpointID 接入 Controller；逐台验证设备出现在 `/api/v1/devices` 与 UI 列表，打开详情读 DeviceInfo，并对每台执行参数 Get/Set | 设备归属租户正确，EndpointID 唯一，列表 / 详情数据一致，参数 Get/Set 成功，S6 通知定向到正确租户房间且不串线 | Pytest + Playwright |
 
 ### 5.7 当前执行状态
 
@@ -185,4 +186,5 @@ tests/
 
 | 日期 | 变更 |
 |---|---|
+| 2026-06-20 | 新增 E2E-SIM-005，覆盖 3-5 台 agent-sim 基础接入、租户归属、EndpointID 唯一性、Get/Set 与通知房间隔离 |
 | 2026-06-17 | 新建 WS-12 MVP 测试用例清单，覆盖 S3/S5/S6/S7、权限安全、并发与 agent-sim E2E 规划 |

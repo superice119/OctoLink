@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!.env.*.example
 
 # TLS / mTLS certificates and keys (NATS, MQTT, etc.)
 *.pem

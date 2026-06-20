@@ -122,3 +122,41 @@ cd frontend && npm install && npm run lint && npm run build
   - `controller` 新增 notifications 集合、订阅入库与 REST API。
   - 前端新增通知上下文、通知中心页面、顶部铃铛入口。
   - 新增任务文档 `docs/tasks/WS-10-notifications.md`。
+  - S6 QA Round 1: 修复匿名连接（JWT 握手），补齐 SessionContextRecord 解析，发送 NotifyResp 回包。
+  - S6 QA Round 2: 同步 package-lock.json，设备级 NATS 验证，NotifyResp 路由修正，cwmp.go int→string 修复。
+  - S6 QA Round 3: 移除 tenant:all 全量推送；按 S7 模型路由 tenant:{owner_tenant_id} + device:{sn}；subscribe_device 检查 device.Customer。
+- 2026-06-20
+  - S6 QA Round 4: 落地 S7 JWT claim 契约（role + tenant_id 进入 controller 签发的 token）。
+    - `auth/auth.go`: JWTClaim 新增 Role/TenantID，GenerateJWT 接受 role/tenantID，添加 ValidateTokenFull。
+    - `db/user.go`: User 新增 TenantID/Role 字段，EffectiveRole() 方法（兼容旧 Level 字段），内联角色常量与 DefaultTenantID。
+    - `api/user.go`: 登录时将 EffectiveRole()+TenantID 编入 JWT。
+    - `socketio/server.js`: subscribe_device 加强 — 非 super_admin 时 deviceOwnerTenant 与 tenantId 均须非空且完全匹配。
+  - **已知问题（不阻塞本轮合并）**：前端 npm run lint（missingRefs/defaultMeta）、npm audit high 漏洞、socketio npm audit — 均为既存构建链问题。
+  - S6 QA Round 5 (post-S7 rebase): S6 branch rebased onto S7 merge commit `e697051`.
+    - Conflicts resolved: `api/api.go` (notifs middleware added to S7 auth chain), `db/db.go` (notifications collection added alongside S7 tenants/roles collections), `frontend/.../config.js` (通知 nav item coexists with Roles/Tenants items).
+    - Removed duplicate constants from `db/user.go` (now live in `role.go` + `tenant.go` via S7).
+    - `api/user.go` login: upgraded to `user.EffectiveTenantID()` — non-super_admin with empty TenantID now falls back to `"default"`, so JWT claim `tenant_id` is never empty for regular users.
+
+## 5. 测试与验收记录
+
+### 5.1 编译验证
+- `backend/services/controller`: `go build ./...` ✅
+- `backend/services/mtp/adapter`: `go build ./...` ✅
+- `backend/services/utils/socketio`: `node --check server.js` ✅
+
+### 5.2 端到端联调场景（待联调后补全日志/截图）
+
+以下为验收清单，S7 合并并部署后执行：
+
+| # | 场景 | 预期结果 |
+|---|------|---------|
+| 1 | 租户 A 用户登录，JWT 含 `tenant_id=A`，device.Customer=A 触发 Notify | 只有租户 A 的 socket 连接收到 `usp_notify`；租户 B 无收到 |
+| 2 | 无 TenantID 旧账户登录 | `EffectiveTenantID()` 返回 `"default"`, 用户加入 `tenant:default`；Customer="default" 的设备通知可达 |
+| 3 | 租户 B 用户调用 `subscribe_device` 订阅属于租户 A 的设备 | `subscribe_error: Device not found or access denied` |
+| 4 | super_admin 用户连接并调用 `subscribe_device` 订阅任意设备 | 加入 `admin` 房间，所有设备通知均可达；subscribe_device 无需租户匹配 |
+| 5 | 匿名客户端（无 token）连接 | `Authentication required: no token provided`，连接拒绝 |
+
+### 5.3 已知问题（不阻塞本轮合并）
+- 前端 `npm run lint`：`missingRefs` / `defaultMeta` 警告 — 既存构建链问题
+- 前端 `npm audit`：high 漏洞 — 既存依赖问题
+- socketio `npm audit` — 既存依赖问题

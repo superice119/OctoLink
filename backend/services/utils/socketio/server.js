@@ -157,12 +157,16 @@ io.on('connection', (socket) => {
             }
 
             // Tenant ownership check (S7 RBAC): device.Customer must match caller's tenant_id.
+            // Both values must be non-empty — a missing Customer or tenantId is treated as
+            // a mismatch to avoid allowing access through missing/legacy data.
             // super_admin bypasses this check.
             const deviceOwnerTenant = resp.Msg && resp.Msg.Customer;
-            if (!isSuperAdmin && deviceOwnerTenant && deviceOwnerTenant !== tenantId) {
-                console.warn(`[Sub] ${email} (tenant=${tenantId}) denied for device:${sn} (owner=${deviceOwnerTenant})`);
-                socket.emit('subscribe_error', { device_sn: sn, reason: 'Device not found or access denied' });
-                return;
+            if (!isSuperAdmin) {
+                if (!deviceOwnerTenant || !tenantId || deviceOwnerTenant !== tenantId) {
+                    console.warn(`[Sub] ${email} (tenant=${tenantId}) denied for device:${sn} (owner=${deviceOwnerTenant})`);
+                    socket.emit('subscribe_error', { device_sn: sn, reason: 'Device not found or access denied' });
+                    return;
+                }
             }
 
             socket.join(`device:${sn}`);

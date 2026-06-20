@@ -16,6 +16,8 @@ const (
 	AdminUser
 )
 
+// Role constants (aligned with S7 RBAC model).
+// Note: RoleSuperAdmin, RoleOperator are declared in role.go; DefaultTenantID in tenant.go.
 type User struct {
 	Email    string     `json:"email"              bson:"email"`
 	Name     string     `json:"name"               bson:"name"`
@@ -46,6 +48,10 @@ func (u *User) EffectiveTenantID() string {
 func IsGlobalRole(role string) bool {
 	return role == RoleSuperAdmin
 }
+
+// EffectiveRole returns the user's role string.  For legacy users that predate
+// the RBAC migration (Role is empty), fall back to Level-based defaults so
+// existing tokens keep working.
 func (u *User) EffectiveRole() string {
 	if u.Role != "" {
 		return u.Role

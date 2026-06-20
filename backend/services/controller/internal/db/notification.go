@@ -42,10 +42,13 @@ func (d *Database) CreateNotification(n Notification) error {
 	return err
 }
 
-func (d *Database) RetrieveNotifications(page, pageSize int64, deviceSN string) (*NotificationsList, error) {
+func (d *Database) RetrieveNotifications(page, pageSize int64, deviceSN, tenantID string) (*NotificationsList, error) {
 	filter := bson.D{}
+	if tenantID != "" {
+		filter = append(filter, bson.E{Key: "owner_tenant_id", Value: tenantID})
+	}
 	if deviceSN != "" {
-		filter = bson.D{{Key: "device_sn", Value: deviceSN}}
+		filter = append(filter, bson.E{Key: "device_sn", Value: deviceSN})
 	}
 
 	total, err := d.notifications.CountDocuments(d.ctx, filter)
@@ -86,7 +89,7 @@ func (d *Database) RetrieveNotifications(page, pageSize int64, deviceSN string) 
 	}, nil
 }
 
-func (d *Database) MarkNotificationsRead(ids []string) error {
+func (d *Database) MarkNotificationsRead(ids []string, tenantID string) error {
 	var objIDs []primitive.ObjectID
 	for _, id := range ids {
 		oid, err := primitive.ObjectIDFromHex(id)
@@ -99,19 +102,29 @@ func (d *Database) MarkNotificationsRead(ids []string) error {
 		return nil
 	}
 	filter := bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: objIDs}}}}
+	if tenantID != "" {
+		filter = append(filter, bson.E{Key: "owner_tenant_id", Value: tenantID})
+	}
 	_, err := d.notifications.UpdateMany(d.ctx, filter, bson.D{{Key: "$set", Value: bson.D{{Key: "read", Value: true}}}})
 	return err
 }
 
-func (d *Database) MarkAllNotificationsRead() error {
-	_, err := d.notifications.UpdateMany(d.ctx, bson.D{{Key: "read", Value: false}}, bson.D{{Key: "$set", Value: bson.D{{Key: "read", Value: true}}}})
+func (d *Database) MarkAllNotificationsRead(tenantID string) error {
+	filter := bson.D{{Key: "read", Value: false}}
+	if tenantID != "" {
+		filter = append(filter, bson.E{Key: "owner_tenant_id", Value: tenantID})
+	}
+	_, err := d.notifications.UpdateMany(d.ctx, filter, bson.D{{Key: "$set", Value: bson.D{{Key: "read", Value: true}}}})
 	return err
 }
 
-func (d *Database) DeleteNotifications(deviceSN string) (int64, error) {
+func (d *Database) DeleteNotifications(deviceSN, tenantID string) (int64, error) {
 	filter := bson.D{}
+	if tenantID != "" {
+		filter = append(filter, bson.E{Key: "owner_tenant_id", Value: tenantID})
+	}
 	if deviceSN != "" {
-		filter = bson.D{{Key: "device_sn", Value: deviceSN}}
+		filter = append(filter, bson.E{Key: "device_sn", Value: deviceSN})
 	}
 	result, err := d.notifications.DeleteMany(d.ctx, filter)
 	if err != nil {

@@ -44,7 +44,15 @@ func (a *Api) listNotifications(w http.ResponseWriter, r *http.Request) {
 		pageSize = 20
 	}
 
-	list, err := a.db.RetrieveNotifications(page, pageSize, deviceSN)
+	// super_admin sees all; everyone else is scoped to their tenant.
+	callerRole, _ := r.Context().Value("role").(string)
+	callerTenantID, _ := r.Context().Value("tenant_id").(string)
+	tenantFilter := callerTenantID
+	if callerRole == db.RoleSuperAdmin {
+		tenantFilter = "" // no restriction
+	}
+
+	list, err := a.db.RetrieveNotifications(page, pageSize, deviceSN, tenantFilter)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(utils.Marshall(err.Error()))
@@ -62,11 +70,18 @@ func (a *Api) markNotificationsRead(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = json.NewDecoder(r.Body).Decode(&body)
 
+	callerRole, _ := r.Context().Value("role").(string)
+	callerTenantID, _ := r.Context().Value("tenant_id").(string)
+	tenantFilter := callerTenantID
+	if callerRole == db.RoleSuperAdmin {
+		tenantFilter = ""
+	}
+
 	var err error
 	if body.All || len(body.IDs) == 0 {
-		err = a.db.MarkAllNotificationsRead()
+		err = a.db.MarkAllNotificationsRead(tenantFilter)
 	} else {
-		err = a.db.MarkNotificationsRead(body.IDs)
+		err = a.db.MarkNotificationsRead(body.IDs, tenantFilter)
 	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -79,7 +94,15 @@ func (a *Api) markNotificationsRead(w http.ResponseWriter, r *http.Request) {
 func (a *Api) deleteNotifications(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	deviceSN := r.URL.Query().Get("device_sn")
-	count, err := a.db.DeleteNotifications(deviceSN)
+
+	callerRole, _ := r.Context().Value("role").(string)
+	callerTenantID, _ := r.Context().Value("tenant_id").(string)
+	tenantFilter := callerTenantID
+	if callerRole == db.RoleSuperAdmin {
+		tenantFilter = ""
+	}
+
+	count, err := a.db.DeleteNotifications(deviceSN, tenantFilter)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(utils.Marshall(err.Error()))

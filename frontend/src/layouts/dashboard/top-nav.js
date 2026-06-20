@@ -27,8 +27,9 @@ import { usePopover } from 'src/hooks/use-popover';
 import { AccountPopover } from './account-popover';
 import { useAuth } from 'src/hooks/use-auth';
 import { WsContext } from 'src/contexts/socketio-context';
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import TrophyIcon from '@heroicons/react/24/outline/TrophyIcon';
+import { useNotifications } from 'src/contexts/notification-context';
 
 const SIDE_NAV_WIDTH = 280;
 const TOP_NAV_HEIGHT = 64;
@@ -38,6 +39,7 @@ export const TopNav = (props) => {
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
   const accountPopover = usePopover();
   const auth = useAuth();
+  const { unread } = useNotifications();
   const { answerCall, call, callAccepted } = useContext(WsContext);
 
   return ( auth.user &&
@@ -109,19 +111,13 @@ export const TopNav = (props) => {
                 </IconButton>
               </Tooltip>
             </Link>
-            {/*<Tooltip title="Notifications">
-              <IconButton>
-                <Badge
-                  badgeContent={4}
-                  color="success"
-                  variant="dot"
-                >
-                  <SvgIcon fontSize="small">
-                    <BellIcon />
-                  </SvgIcon>
+            <Tooltip title="通知">
+              <IconButton component="a" href="/notifications">
+                <Badge badgeContent={unread} color="error" max={99}>
+                  <SvgIcon fontSize="small"><BellIcon /></SvgIcon>
                 </Badge>
               </IconButton>
-            </Tooltip>*/}
+            </Tooltip>
             <Avatar
               onClick={accountPopover.handleOpen}
               ref={accountPopover.anchorRef}

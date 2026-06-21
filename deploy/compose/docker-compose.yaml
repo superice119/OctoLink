@@ -20,7 +20,11 @@ services:
 
   #/* ------------------------ API REST / USP Controller ----------------------- */
   controller:
-    image: "oktopusp/controller"
+    build:
+      context: ../../backend/services/controller
+      dockerfile: build/Dockerfile
+    image: octolink/controller:local
+    pull_policy: never
     container_name: controller
     ports:
       - 8000:8000
@@ -53,7 +57,11 @@ services:
 
   #/* ----------------------- Message Transfer Protocols ----------------------- */
   mqtt:
-    image: "oktopusp/mqtt"
+    build:
+      context: ../../backend/services/mtp/mqtt
+      dockerfile: build/Dockerfile
+    image: octolink/mqtt:local
+    pull_policy: never
     container_name: mqtt
     ports:
       - 1883:1883
@@ -68,7 +76,11 @@ services:
     profiles: [mqtt]
 
   ws:
-    image: "oktopusp/ws"
+    build:
+      context: ../../backend/services/mtp/ws
+      dockerfile: build/Dockerfile
+    image: octolink/ws:local
+    pull_policy: never
     container_name: websockets
     ports:
       - 8080:8080
@@ -83,7 +95,11 @@ services:
     profiles: [ws]
 
   stomp:
-    image: "oktopusp/stomp"
+    build:
+      context: ../../backend/services/mtp/stomp
+      dockerfile: build/Dockerfile
+    image: octolink/stomp:local
+    pull_policy: never
     container_name: stomp
     ports:
       - 61613:61613
@@ -95,7 +111,11 @@ services:
 
   #/* --------------- Message transfer Protocols Adapters to NATS -------------- */
   mqtt-adapter:
-    image: "oktopusp/mqtt-adapter"
+    build:
+      context: ../../backend/services/mtp/mqtt-adapter
+      dockerfile: build/Dockerfile
+    image: octolink/mqtt-adapter:local
+    pull_policy: never
     container_name: mqtt-adapter
     depends_on:
       - mqtt
@@ -109,7 +129,11 @@ services:
     profiles: [mqtt]
 
   ws-adapter:
-    image: "oktopusp/ws-adapter"
+    build:
+      context: ../../backend/services/mtp/ws-adapter
+      dockerfile: build/Dockerfile
+    image: octolink/ws-adapter:local
+    pull_policy: never
     container_name: ws-adapter
     depends_on:
       - ws
@@ -123,7 +147,11 @@ services:
     profiles: [ws]
 
   stomp-adapter:
-    image: "oktopusp/stomp-adapter"
+    build:
+      context: ../../backend/services/mtp/stomp-adapter
+      dockerfile: build/Dockerfile
+    image: octolink/stomp-adapter:local
+    pull_policy: never
     container_name: stomp-adapter
     depends_on:
       - stomp
@@ -137,7 +165,11 @@ services:
     profiles: [stomp]
 
   adapter:
-    image: "oktopusp/adapter"
+    build:
+      context: ../../backend/services/mtp/adapter
+      dockerfile: build/Dockerfile
+    image: octolink/adapter:local
+    pull_policy: never
     container_name: adapter
     depends_on:
       - mongo_usp
@@ -153,7 +185,11 @@ services:
 
   #/* ------------- SocketIO Real Time Communication With Frontend ------------- */
   socketio:
-    image: "oktopusp/socketio"
+    build:
+      context: ../../backend/services/utils/socketio
+      dockerfile: build/Dockerfile
+    image: octolink/socketio:local
+    pull_policy: never
     container_name: socketio
     ports:
       - 5000:5000
@@ -169,7 +205,11 @@ services:
 
   #/* -------------------------------- Frontend -------------------------------- */
   frontend:
-    image: "oktopusp/frontend"
+    build:
+      context: ../../frontend
+      dockerfile: build/Dockerfile
+    image: octolink/frontend:local
+    pull_policy: never
     container_name: frontend
     ports:
       - 3000:3000
@@ -193,7 +233,11 @@ services:
       - ./portainer_data:/data
 
   acs:
-    image: "oktopusp/acs"
+    build:
+      context: ../../backend/services/acs
+      dockerfile: build/Dockerfile
+    image: octolink/acs:local
+    pull_policy: never
     container_name: acs
     ports:
       - 9292:9292
@@ -220,7 +264,11 @@ services:
         ipv4_address: 172.16.235.17
 
   file-server:
-    image: oktopusp/file-server
+    build:
+      context: ../../backend/services/utils/file-server
+      dockerfile: build/Dockerfile
+    image: octolink/file-server:local
+    pull_policy: never
     container_name: file-server
     ports:
       - 8004:8004

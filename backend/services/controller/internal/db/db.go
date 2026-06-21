@@ -71,7 +71,7 @@ func NewDatabase(ctx context.Context, mongoUri string) Database {
 
 	db.roles = client.Database("account-mngr").Collection("roles")
 	_, err = db.roles.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys:    bson.M{"name": 1, "tenant_id": 1},
+		Keys:    bson.D{{Key: "name", Value: 1}, {Key: "tenant_id", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	})
 	if err != nil {

@@ -54,8 +54,49 @@ io.use((socket, next) => {
 let users = []
 
 // -------- NATS → Socket.IO bridge for USP Notify --------
-const NATS_URL = process.env.NATS_URL || "nats://nats:4222"
 const WEBHOOK_URL = process.env.WEBHOOK_URL || ""
+
+// Build nats.js connect() options from environment variables.
+// Credentials are passed as separate `user`/`pass` fields so nats.js never
+// sees an inline "user:pass@host" URL (which it misparses via ERR_INVALID_URL).
+// When NATS_ENABLE_TLS=true the cert/key/CA files are wired into the tls option.
+function buildNatsConnectOptions() {
+    const rawUrl = process.env.NATS_URL || "nats://msg_broker:4222";
+
+    // Strip any inline credentials from the URL so `servers` is always clean.
+    let serverUrl = rawUrl;
+    let userFromUrl = "";
+    let passFromUrl = "";
+    try {
+        const parsed = new URL(rawUrl.replace(/^nats:\/\//, "http://"));
+        if (parsed.username) {
+            userFromUrl = decodeURIComponent(parsed.username);
+            passFromUrl = decodeURIComponent(parsed.password);
+            serverUrl = `nats://${parsed.host}`;
+        }
+    } catch (_) {
+        // URL unparseable; pass rawUrl as-is and let nats.js surface the error
+    }
+
+    const user = process.env.NATS_USER || userFromUrl;
+    const pass = process.env.NATS_PASS || passFromUrl;
+
+    const opts = { servers: serverUrl };
+    if (user) opts.user = user;
+    if (pass) opts.pass = pass;
+
+    if ((process.env.NATS_ENABLE_TLS || "").toLowerCase() === "true") {
+        const tls = {};
+        if (process.env.CLIENT_CRT) tls.certFile = process.env.CLIENT_CRT;
+        if (process.env.CLIENT_KEY) tls.keyFile = process.env.CLIENT_KEY;
+        if (process.env.SERVER_CA) tls.caFile = process.env.SERVER_CA;
+        opts.tls = tls;
+    }
+
+    return opts;
+}
+
+const NATS_CONNECT_OPTS = buildNatsConnectOptions();
 
 // natsConn is set once the NATS bridge starts; used for device-existence validation.
 let natsConn = null;
@@ -64,9 +105,10 @@ async function startNatsBridgeWithRef() {
     try {
         const { connect, StringCodec } = require('nats');
         const sc = StringCodec();
-        const nc = await connect({ servers: NATS_URL });
+        const nc = await connect(NATS_CONNECT_OPTS);
         natsConn = nc;
-        console.log(`[NATS] Connected to ${NATS_URL}`);
+        const displayUrl = NATS_CONNECT_OPTS.servers;
+        console.log(`[NATS] Connected to ${displayUrl}${NATS_CONNECT_OPTS.user ? " (authenticated)" : ""}`);
 
         const sub = nc.subscribe("notification.v1.>");
         console.log("[NATS] Subscribed to notification.v1.>");

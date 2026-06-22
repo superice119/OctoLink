@@ -547,8 +547,7 @@ func (a *Api) assignDeviceTenant(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// RBAC: super_admin can assign to any tenant; tenant_admin only to own tenant.
-	// operator/viewer reach this handler because DeviceWritePermission allows devices:write,
-	// but neither role holds that permission — they are rejected by middleware before here.
+	// operator/viewer are rejected by middleware before reaching here.
 	switch callerRole {
 	case db.RoleSuperAdmin:
 		// allowed unrestricted
@@ -564,6 +563,20 @@ func (a *Api) assignDeviceTenant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch device — validates existence (getDeviceInfo writes 404 on miss) and current ownership.
+	device, err := getDeviceInfo(w, id, a.nc)
+	if err != nil {
+		return
+	}
+
+	// tenant_admin cannot reassign a device that already belongs to a different tenant.
+	// Claiming an unassigned device (Customer=="") or re-setting own tenant is allowed.
+	if callerRole == db.RoleTenantAdmin && device.Customer != "" && device.Customer != callerTenantID {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode("device already belongs to another tenant")
+		return
+	}
+
 	// Verify target tenant exists
 	if _, err := a.db.FindTenant(targetTenant); err != nil {
 		if err == db.ErrorTenantNotFound {
@@ -576,7 +589,7 @@ func (a *Api) assignDeviceTenant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := bridge.NatsReq[[]byte](local.NATS_ADAPTER_SUBJECT+id+".device.customer", []byte(targetTenant), w, a.nc)
+	_, err = bridge.NatsReq[[]byte](local.NATS_ADAPTER_SUBJECT+id+".device.customer", []byte(targetTenant), w, a.nc)
 	if err != nil {
 		return
 	}

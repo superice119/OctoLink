@@ -100,7 +100,6 @@ func StartRequestsListener(ctx context.Context, nc *nats.Conn, db db.Database) {
 
 		customerFilter := criteria["customer"]
 		if customerFilter != nil {
-			log.Println("Customer filter", customerFilter)
 			propertiesFilter = append(propertiesFilter, bson.E{Key: "customer", Value: customerFilter})
 		}
 

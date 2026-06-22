@@ -65,6 +65,7 @@ func (a *Api) StartApi() {
 
 	iot := r.PathPrefix("/api/device").Subrouter()
 	iot.HandleFunc("/alias", a.setDeviceAlias).Methods("PUT")
+	iot.HandleFunc("/customer", a.assignDeviceTenant).Methods("PUT")
 	iot.HandleFunc("/auth", a.deviceAuth).Methods("GET", "POST", "DELETE")
 	iot.HandleFunc("/message/{type}", a.addTemplate).Methods("POST")
 	iot.HandleFunc("/message", a.updateTemplate).Methods("PUT")

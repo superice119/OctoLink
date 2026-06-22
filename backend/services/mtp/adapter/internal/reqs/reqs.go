@@ -98,6 +98,12 @@ func StartRequestsListener(ctx context.Context, nc *nats.Conn, db db.Database) {
 			propertiesFilter = append(propertiesFilter, bson.E{Key: "status", Value: statusFilter})
 		}
 
+		customerFilter := criteria["customer"]
+		if customerFilter != nil {
+			log.Println("Customer filter", customerFilter)
+			propertiesFilter = append(propertiesFilter, bson.E{Key: "customer", Value: customerFilter})
+		}
+
 		filter := bson.A{
 			bson.D{
 				{"$match",
@@ -221,6 +227,22 @@ func StartRequestsListener(ctx context.Context, nc *nats.Conn, db db.Database) {
 			return
 		}
 		respondMsg(msg.Respond, 200, "Alias updated")
+	})
+
+	nc.QueueSubscribe(local.ADAPTER_SUBJECT+"*.device.customer", local.ADAPTER_QUEUE, func(msg *nats.Msg) {
+		subject := strings.Split(msg.Subject, ".")
+		device := subject[len(subject)-3]
+
+		err := db.SetDeviceCustomer(device, string(msg.Data))
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				respondMsg(msg.Respond, 404, "Device not found")
+			} else {
+				respondMsg(msg.Respond, 500, err.Error())
+			}
+			return
+		}
+		respondMsg(msg.Respond, 200, "Customer updated")
 	})
 }
 

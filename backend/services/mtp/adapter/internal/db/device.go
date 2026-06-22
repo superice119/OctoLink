@@ -89,6 +89,12 @@ func (d *Database) CreateDevice(device Device) error {
 	}
 	/* -------------------------------------------------------------------------- */
 
+	/* ----------------------- Do not overwrite customer ----------------------- */
+	if deviceExistent.Customer != "" {
+		device.Customer = deviceExistent.Customer
+	}
+	/* -------------------------------------------------------------------------- */
+
 	/* -------------------------------------------------------------------------- */
 
 	callback := func(sessCtx mongo.SessionContext) (interface{}, error) {
@@ -222,6 +228,11 @@ func (d *Database) DeleteDevice() {
 
 func (d *Database) SetDeviceAlias(sn string, newAlias string) error {
 	err := d.devices.FindOneAndUpdate(d.ctx, bson.D{{"sn", sn}}, bson.D{{"$set", bson.D{{"alias", newAlias}}}}).Err()
+	return err
+}
+
+func (d *Database) SetDeviceCustomer(sn string, tenantID string) error {
+	err := d.devices.FindOneAndUpdate(d.ctx, bson.D{{"sn", sn}}, bson.D{{"$set", bson.D{{"customer", tenantID}}}}).Err()
 	return err
 }
 

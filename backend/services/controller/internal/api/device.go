@@ -519,6 +519,82 @@ func (a *Api) getTemplate(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (a *Api) assignDeviceTenant(w http.ResponseWriter, r *http.Request) {
+	callerRole, _ := r.Context().Value("role").(string)
+	callerTenantID, _ := r.Context().Value("tenant_id").(string)
+
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("No id provided")
+		return
+	}
+
+	var body struct {
+		TenantID string `json:"tenant_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Error to decode payload: " + err.Error())
+		return
+	}
+
+	targetTenant := body.TenantID
+	if targetTenant == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("tenant_id is required")
+		return
+	}
+
+	// RBAC: super_admin can assign to any tenant; tenant_admin only to own tenant.
+	// operator/viewer are rejected by middleware before reaching here.
+	switch callerRole {
+	case db.RoleSuperAdmin:
+		// allowed unrestricted
+	case db.RoleTenantAdmin:
+		if targetTenant != callerTenantID {
+			w.WriteHeader(http.StatusForbidden)
+			json.NewEncoder(w).Encode("tenant_admin can only assign devices to own tenant")
+			return
+		}
+	default:
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode("insufficient permissions to assign device tenant")
+		return
+	}
+
+	// Fetch device — validates existence (getDeviceInfo writes 404 on miss) and current ownership.
+	device, err := getDeviceInfo(w, id, a.nc)
+	if err != nil {
+		return
+	}
+
+	// tenant_admin cannot reassign a device that already belongs to a different tenant.
+	// Claiming an unassigned device (Customer=="") or re-setting own tenant is allowed.
+	if callerRole == db.RoleTenantAdmin && device.Customer != "" && device.Customer != callerTenantID {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode("device already belongs to another tenant")
+		return
+	}
+
+	// Verify target tenant exists
+	if _, err := a.db.FindTenant(targetTenant); err != nil {
+		if err == db.ErrorTenantNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode("tenant not found: " + targetTenant)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(err.Error())
+		}
+		return
+	}
+
+	_, err = bridge.NatsReq[[]byte](local.NATS_ADAPTER_SUBJECT+id+".device.customer", []byte(targetTenant), w, a.nc)
+	if err != nil {
+		return
+	}
+}
+
 func (a *Api) deleteTemplate(w http.ResponseWriter, r *http.Request) {
 
 	name := r.URL.Query().Get("name")

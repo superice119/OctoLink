@@ -48,13 +48,33 @@ func parseDeviceInfoMsg(sn, subject string, data []byte, mtp db.MTP) db.Device {
         return db.Device{}
     }
 
-    err = proto.Unmarshal(record.GetNoSessionContext().Payload, &message)
-    if err != nil {
+    // Extract USP Msg payload from whichever record context the agent used.
+    // Real devices (obuspa) may send session-context records; agent-sim uses no-session-context.
+    var msgPayload []byte
+    switch {
+    case record.GetNoSessionContext() != nil:
+        msgPayload = record.GetNoSessionContext().GetPayload()
+    case record.GetSessionContext() != nil:
+        // SessionContextRecord.Payload is [][]byte (segmented); concatenate all chunks.
+        for _, chunk := range record.GetSessionContext().GetPayload() {
+            msgPayload = append(msgPayload, chunk...)
+        }
+    default:
+        log.Printf("parseDeviceInfoMsg: unsupported record type for device %s, subject %s", sn, subject)
+        return db.Device{}
+    }
+
+    if err = proto.Unmarshal(msgPayload, &message); err != nil {
         log.Println("Error unmarshaling USP Message:", err)
         return db.Device{}
     }
 
     var device db.Device
+
+    if message.Body == nil {
+        log.Printf("parseDeviceInfoMsg: nil Body in USP Msg for device %s", sn)
+        return device
+    }
 
     respBody, isResponse := message.Body.MsgBody.(*usp_msg.Body_Response)
 

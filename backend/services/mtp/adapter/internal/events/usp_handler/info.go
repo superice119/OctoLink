@@ -12,6 +12,13 @@ import (
 )
 
 func (h *Handler) HandleDeviceInfo(device, subject string, data []byte, mtp string, ack func()) {
+	// MTP bridge publishes all controller-channel traffic (Notify AND GetResp) to the .info
+	// NATS subject because it cannot inspect USP payload. Redirect genuine Notify requests to
+	// HandleNotify before registering our own defer ack(), so only one ack fires per message.
+	if isUspNotify(data) {
+		h.HandleNotify(device, subject, data, mtp, ack)
+		return
+	}
 	defer ack()
 	log.Printf("Device %s info, mtp: %s", device, mtp)
 	deviceInfo := parseDeviceInfoMsg(device, subject, data, getMtp(mtp))
@@ -121,4 +128,41 @@ func parseDeviceInfoMsg(sn, subject string, data []byte, mtp db.MTP) db.Device {
     device.Status = db.Online
 
     return device
+}
+
+// isUspNotify peeks the USP Record payload and returns true when the enclosed
+// USP Msg is a Request containing a Notify body. Uses the safe record-context
+// switch (WS-25) so session-context records do not nil-panic.
+func isUspNotify(data []byte) bool {
+	var record usp_record.Record
+	if err := proto.Unmarshal(data, &record); err != nil {
+		return false
+	}
+
+	var msgPayload []byte
+	switch {
+	case record.GetNoSessionContext() != nil:
+		msgPayload = record.GetNoSessionContext().GetPayload()
+	case record.GetSessionContext() != nil:
+		for _, chunk := range record.GetSessionContext().GetPayload() {
+			msgPayload = append(msgPayload, chunk...)
+		}
+	default:
+		return false
+	}
+
+	var message usp_msg.Msg
+	if err := proto.Unmarshal(msgPayload, &message); err != nil {
+		return false
+	}
+
+	if message.Body == nil {
+		return false
+	}
+
+	req, isRequest := message.Body.MsgBody.(*usp_msg.Body_Request)
+	if !isRequest {
+		return false
+	}
+	return req.Request.GetNotify() != nil
 }

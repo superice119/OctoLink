@@ -11,7 +11,10 @@
     "start": "next start",
     "export": "next export",
     "lint": "next lint",
-    "lint-fix": "next lint --fix"
+    "lint-fix": "next lint --fix",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:fix-dependent": "E2E_RUN_FIX_DEPENDENT=1 playwright test"
   },
   "overrides": {
     "minimatch": "^10.2.2",
@@ -47,6 +50,7 @@
     "yup": "1.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "18.13.0",
     "@types/nprogress": "0.2.0",
     "@types/numeral": "2.0.2",

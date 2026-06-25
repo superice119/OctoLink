@@ -274,7 +274,12 @@ const Page = () => {
       redirect: 'follow'
     };
 
-    let result = await fetch(`${process.env.NEXT_PUBLIC_REST_ENDPOINT || ""}/api/device?id=${sn}`, requestOptions)
+    // Ghost devices have an empty SN — use the super_admin cleanup path
+    const url = (sn === "" || sn == null)
+      ? `${process.env.NEXT_PUBLIC_REST_ENDPOINT || ""}/api/device?cleanup_ghosts=true`
+      : `${process.env.NEXT_PUBLIC_REST_ENDPOINT || ""}/api/device?id=${sn}`;
+
+    let result = await fetch(url, requestOptions)
     console.log("result:", result)
     if (result.status === 401) {
       router.push("/auth/login")
@@ -289,8 +294,8 @@ const Page = () => {
       console.log("remove device result:", content)
       setShowSetDeviceToBeRemoved(false)
       setDeviceToBeRemoved(null)
-      devices.splice(deviceToBeRemoved, 1)
-      setDevices([...devices])
+      // Re-fetch to get accurate list and total count
+      fetchDevicePerPage(page, statusOrder, filtersList, rowsPerPage)
     }
 
   }
@@ -789,14 +794,21 @@ const Page = () => {
                     {showSetDeviceToBeRemoved &&
                     <Dialog open={showSetDeviceToBeRemoved}>
                       <DialogContent>
-                        <DialogContentText>Are you sure you want to remove <b>{devices[deviceToBeRemoved].SN}</b> device?</DialogContentText>
+                        {devices[deviceToBeRemoved]?.SN
+                          ? <DialogContentText>Are you sure you want to remove <b>{devices[deviceToBeRemoved].SN}</b> device?</DialogContentText>
+                          : <DialogContentText>
+                              This device has no serial number (ghost entry). Only super_admin can clean it up.
+                              {auth.user?.role !== 'super_admin' && <><br/><b>Contact your super_admin to remove ghost devices.</b></>}
+                            </DialogContentText>
+                        }
                       </DialogContent>
                       <DialogActions>
                         <Button onClick={() => {
                           setShowSetDeviceToBeRemoved(false)
                           setDeviceToBeRemoved(null)
                         }}>Cancel</Button>
-                        <Button 
+                        <Button
+                          disabled={!devices[deviceToBeRemoved]?.SN && auth.user?.role !== 'super_admin'}
                           endIcon={<SvgIcon><TrashIcon /></SvgIcon>}
                           onClick={() => {
                           removeDevice(devices[deviceToBeRemoved].SN)

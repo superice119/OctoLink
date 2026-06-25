@@ -24,9 +24,26 @@ func (a *Api) retrieveDevices(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodDelete {
 		id := r.URL.Query().Get("id")
+
+		// Super-admin can clean up all ghost records (empty SN) via ?cleanup_ghosts=true
 		if id == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			err := json.NewEncoder(w).Encode("No id provided")
+			if r.URL.Query().Get("cleanup_ghosts") != "true" || callerRole != db.RoleSuperAdmin {
+				w.WriteHeader(http.StatusBadRequest)
+				err := json.NewEncoder(w).Encode("No id provided")
+				if err != nil {
+					log.Println(err)
+				}
+				return
+			}
+			// Delete all documents where sn="" (ghost records)
+			ghostIDs := []string{""}
+			msg, err := bridge.NatsReq[int64](local.NATS_ADAPTER_SUBJECT+"devices.delete", utils.Marshall(ghostIDs), w, a.nc)
+			if err != nil {
+				return
+			}
+			err = json.NewEncoder(w).Encode(map[string]interface{}{
+				"number_of_deleted_devices": msg.Msg,
+			})
 			if err != nil {
 				log.Println(err)
 			}
@@ -35,14 +52,15 @@ func (a *Api) retrieveDevices(w http.ResponseWriter, r *http.Request) {
 
 		ids := strings.Split(id, ",")
 
-		// For non-super_admin, verify each device belongs to the caller's tenant
+		// For non-super_admin, verify each device belongs to the caller's tenant.
+		// Devices with no customer (empty string) are unassigned — any authorized role may delete them.
 		if callerRole != db.RoleSuperAdmin {
 			for _, sn := range ids {
 				device, err := getDeviceInfo(w, sn, a.nc)
 				if err != nil {
 					return
 				}
-				if device.Customer != callerTenantID {
+				if device.Customer != "" && device.Customer != callerTenantID {
 					w.WriteHeader(http.StatusForbidden)
 					json.NewEncoder(w).Encode("device " + sn + " does not belong to your tenant")
 					return

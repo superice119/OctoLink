@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 import MagnifyingGlassIcon from '@heroicons/react/24/solid/MagnifyingGlassIcon';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { Box, Button, Container, Stack, SvgIcon, Tooltip, Typography, IconButton,
@@ -22,6 +23,7 @@ import { useAuth } from 'src/hooks/use-auth';
 import { useRouter } from 'next/router';
 
 const Page = () => {
+  const { t } = useTranslation();
   const auth = useAuth();
   const router = useRouter();
 
@@ -177,7 +179,7 @@ const Page = () => {
     <>
       <Head>
         <title>
-          Devices Credentials | OctoLink
+          {t('credentials.headTitle')}
         </title>
       </Head>
       <Box
@@ -196,9 +198,9 @@ const Page = () => {
             >
               <Stack spacing={1} direction="row" alignItems={'center'}>
                 <Typography variant="h4">
-                  Devices Credentials 
+                  {t('credentials.title')}
                 </Typography>
-                <Tooltip title="Defines username and password for devices authentication, this must be enabled through environment vars." placement="top">
+                <Tooltip title={t('credentials.tooltip')} placement="top">
                     <IconButton>
                         <SvgIcon>
                             <InformactionCircleIcon />
@@ -296,7 +298,7 @@ const Page = () => {
               margin="dense"
               id="username"
               name="username"
-              label="Username"
+              label={t('credentials.usernameLabel')}
               type="username"
               fullWidth
               onChange={
@@ -312,7 +314,7 @@ const Page = () => {
                 <Input
                 id="standard-adornment-password"
                 type={showPassword ? 'text' : 'password'}
-                label="Password"
+                label={t('credentials.passwordLabel')}
                 endAdornment={
                     <InputAdornment position="end">
                     <IconButton

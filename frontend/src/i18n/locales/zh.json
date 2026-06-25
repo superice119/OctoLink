@@ -1,0 +1,64 @@
+{
+  "language": {
+    "label": "语言",
+    "zh": "中文",
+    "en": "English"
+  },
+  "nav": {
+    "overview": "总览",
+    "devices": "设备",
+    "credentials": "凭据",
+    "users": "用户",
+    "roles": "角色",
+    "tenants": "租户",
+    "notifications": "通知",
+    "settings": "设置",
+    "docs": "文档"
+  },
+  "topnav": {
+    "notifications": "通知",
+    "repo": "查看源码"
+  },
+  "account": {
+    "title": "账户",
+    "signOut": "退出登录",
+    "pageTitle": "账户",
+    "headTitle": "账户 | OctoLink"
+  },
+  "login": {
+    "headTitle": "登录 | OctoLink",
+    "title": "登录",
+    "openSource": "本项目为开源项目,欢迎在 <gh>Github</gh> 与我们交流",
+    "github": "Github",
+    "emailLabel": "邮箱地址",
+    "passwordLabel": "密码",
+    "continue": "继续",
+    "emailValid": "请输入有效的邮箱地址",
+    "emailRequired": "邮箱不能为空",
+    "passwordRequired": "密码不能为空",
+    "demoHint": "你可以使用 <b>demo@gmail.com</b>,密码 <b>demo</b>",
+    "notAvailable": "演示环境暂不可用",
+    "demoDisabled": "为避免不必要的开销,该功能在演示环境中已禁用。"
+  },
+  "notifications": {
+    "headTitle": "通知 | OctoLink",
+    "title": "通知中心"
+  },
+  "settings": {
+    "headTitle": "设置 | OctoLink",
+    "title": "设置"
+  },
+  "credentials": {
+    "headTitle": "设备凭据 | OctoLink",
+    "title": "设备凭据",
+    "tooltip": "用于设备认证的用户名与密码,需通过环境变量启用。",
+    "usernameLabel": "用户名",
+    "passwordLabel": "密码"
+  },
+  "devices": {
+    "headTitle": "设备 | OctoLink"
+  },
+  "overview": {
+    "headTitle": "总览 | OctoLink"
+  }
+}

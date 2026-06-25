@@ -21,6 +21,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { items } from './config';
 import { SideNavItem } from './side-nav-item';
 import { useTheme } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { useAuthContext } from 'src/contexts/auth-context';
 
 // Routes that require specific roles to appear in the nav
@@ -42,6 +43,7 @@ export const SideNav = (props) => {
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
   const { user } = useAuthContext();
   const userRole = user?.role || '';
+  const { t } = useTranslation();
 
   const theme = useTheme();
 
@@ -143,7 +145,7 @@ export const SideNav = (props) => {
                   icon={item.icon}
                   key={item.title}
                   path={item.path}
-                  title={item.title}
+                  title={t(item.title)}
                   children={item?.children}
                   padleft={2}
                   tooltip={item.tooltip}

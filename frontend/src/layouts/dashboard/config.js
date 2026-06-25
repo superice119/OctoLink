@@ -20,7 +20,7 @@ import BellIcon from '@heroicons/react/24/solid/BellIcon';
 
 export const items = [
   {
-    title: 'Overview',
+    title: 'nav.overview',
     path: '/',
     icon: (
       <SvgIcon fontSize="small">
@@ -29,7 +29,7 @@ export const items = [
     )
   },
   {
-    title: 'Devices',
+    title: 'nav.devices',
     path: '/devices',
     icon: (
       <SvgIcon fontSize="small">
@@ -38,7 +38,7 @@ export const items = [
     )
   },
   {
-    title: 'Credentials',
+    title: 'nav.credentials',
     path: '/credentials',
     icon: (
       <SvgIcon fontSize="small">
@@ -47,7 +47,7 @@ export const items = [
     )
   },
   {
-    title: 'Users',
+    title: 'nav.users',
     path: '/access-control/users',
     icon: (
       <SvgIcon fontSize="small">
@@ -56,7 +56,7 @@ export const items = [
     )
   },
   {
-    title: 'Roles',
+    title: 'nav.roles',
     path: '/access-control/roles',
     icon: (
       <SvgIcon fontSize="small">
@@ -65,7 +65,7 @@ export const items = [
     )
   },
   {
-    title: 'Tenants',
+    title: 'nav.tenants',
     path: '/access-control/tenants',
     icon: (
       <SvgIcon fontSize="small">
@@ -74,7 +74,7 @@ export const items = [
     )
   },
   {
-    title: '通知',
+    title: 'nav.notifications',
     path: '/notifications',
     icon: (
       <SvgIcon fontSize="small">
@@ -83,7 +83,7 @@ export const items = [
     )
   },
   {
-    title: 'Settings',
+    title: 'nav.settings',
     path: '/settings',
     icon: (
       <SvgIcon fontSize="small">
@@ -92,7 +92,7 @@ export const items = [
     )
   },
   {
-    title: 'Docs',
+    title: 'nav.docs',
     path: 'https://github.com/superice119/OctoLink/wiki',
     icon: (
       <SvgIcon fontSize="small">

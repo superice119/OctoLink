@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from 'react';
 import { subDays, subHours } from 'date-fns';
 import { 
@@ -17,6 +18,7 @@ const now = new Date();
 const Page = () => {
 
   const router = useRouter()
+  const { t } = useTranslation()
 
   const [generalInfo, setGeneralInfo] = useState(null)
   const [devicesStatus, setDevicesStatus] = useState([0,0])
@@ -129,7 +131,7 @@ const Page = () => {
   <>
     <Head>
       <title>
-        OctoLink | 物联控制器
+        {t('overview.headTitle')}
       </title>
     </Head>
     <Box

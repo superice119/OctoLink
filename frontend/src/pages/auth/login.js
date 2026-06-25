@@ -18,10 +18,12 @@ import {
 } from '@mui/material';
 import { useAuth } from 'src/hooks/use-auth';
 import { Layout as AuthLayout } from 'src/layouts/auth/layout';
+import { useTranslation, Trans } from 'react-i18next';
 
 const Page = () => {
   const router = useRouter();
   const auth = useAuth();
+  const { t } = useTranslation();
   const [method, setMethod] = useState('email');
   const formik = useFormik({
     initialValues: {
@@ -32,13 +34,13 @@ const Page = () => {
     validationSchema: Yup.object({
       email: Yup
         .string()
-        .email('Must be a valid email')
+        .email(t('login.emailValid'))
         .max(255)
-        .required('Email is required'),
+        .required(t('login.emailRequired')),
       password: Yup
         .string()
         .max(255)
-        .required('Password is required')
+        .required(t('login.passwordRequired'))
     }),
     onSubmit: async (values, helpers) => {
       try {
@@ -103,7 +105,7 @@ const Page = () => {
     <>
       <Head>
         <title>
-          Login | OctoLink
+          {t('login.headTitle')}
         </title>
       </Head>
       <Box
@@ -129,13 +131,16 @@ const Page = () => {
               sx={{ mb: 3 }}
             >
               <Typography variant="h4">
-                Login
+                {t('login.title')}
               </Typography>
               <Typography
                 color="text.secondary"
                 variant="body2"
               >
-              This project is open source, reach out at <Link href='https://github.com/superice119/OctoLink'>Github</Link>
+              <Trans
+                i18nKey="login.openSource"
+                components={{ gh: <Link href='https://github.com/superice119/OctoLink' /> }}
+              />
               </Typography>
             </Stack>
             {/*<Tabs
@@ -162,7 +167,7 @@ const Page = () => {
                     error={!!(formik.touched.email && formik.errors.email)}
                     fullWidth
                     helperText={formik.touched.email && formik.errors.email}
-                    label="Email Address"
+                    label={t('login.emailLabel')}
                     name="email"
                     onBlur={formik.handleBlur}
                     onChange={formik.handleChange}
@@ -173,7 +178,7 @@ const Page = () => {
                     error={!!(formik.touched.password && formik.errors.password)}
                     fullWidth
                     helperText={formik.touched.password && formik.errors.password}
-                    label="Password"
+                    label={t('login.passwordLabel')}
                     name="password"
                     onBlur={formik.handleBlur}
                     onChange={formik.handleChange}
@@ -200,7 +205,7 @@ const Page = () => {
                   type="submit"
                   variant="contained"
                 >
-                  Continue
+                  {t('login.continue')}
                 </Button>
                 {/* <Button
                   fullWidth
@@ -216,7 +221,7 @@ const Page = () => {
                   sx={{ mt: 3 }}
                 >
                   <div>
-                    You can use <b>demo@gmail.com</b> and password <b>demo</b>
+                    <Trans i18nKey="login.demoHint" components={{ b: <b /> }} />
                   </div>
                 </Alert>}
               </form>
@@ -227,10 +232,10 @@ const Page = () => {
                   sx={{ mb: 1 }}
                   variant="h6"
                 >
-                  Not available in the demo
+                  {t('login.notAvailable')}
                 </Typography>
                 <Typography color="text.secondary">
-                  To prevent unnecessary costs we disabled this feature in the demo.
+                  {t('login.demoDisabled')}
                 </Typography>
               </div>
             )}

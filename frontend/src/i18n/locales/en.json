@@ -1,0 +1,64 @@
+{
+  "language": {
+    "label": "Language",
+    "zh": "中文",
+    "en": "English"
+  },
+  "nav": {
+    "overview": "Overview",
+    "devices": "Devices",
+    "credentials": "Credentials",
+    "users": "Users",
+    "roles": "Roles",
+    "tenants": "Tenants",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "docs": "Docs"
+  },
+  "topnav": {
+    "notifications": "Notifications",
+    "repo": "View source"
+  },
+  "account": {
+    "title": "Account",
+    "signOut": "Sign out",
+    "pageTitle": "Account",
+    "headTitle": "Account | OctoLink"
+  },
+  "login": {
+    "headTitle": "Login | OctoLink",
+    "title": "Login",
+    "openSource": "This project is open source, reach out at <gh>Github</gh>",
+    "github": "Github",
+    "emailLabel": "Email Address",
+    "passwordLabel": "Password",
+    "continue": "Continue",
+    "emailValid": "Must be a valid email",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "demoHint": "You can use <b>demo@gmail.com</b> and password <b>demo</b>",
+    "notAvailable": "Not available in the demo",
+    "demoDisabled": "To prevent unnecessary costs we disabled this feature in the demo."
+  },
+  "notifications": {
+    "headTitle": "Notifications | OctoLink",
+    "title": "Notification Center"
+  },
+  "settings": {
+    "headTitle": "Settings | OctoLink",
+    "title": "Settings"
+  },
+  "credentials": {
+    "headTitle": "Device Credentials | OctoLink",
+    "title": "Device Credentials",
+    "tooltip": "Defines username and password for devices authentication, this must be enabled through environment vars.",
+    "usernameLabel": "Username",
+    "passwordLabel": "Password"
+  },
+  "devices": {
+    "headTitle": "Devices | OctoLink"
+  },
+  "overview": {
+    "headTitle": "Overview | OctoLink"
+  }
+}

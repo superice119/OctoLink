@@ -1,14 +1,17 @@
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 import { Box, Container, Stack, Typography } from '@mui/material';
 import { SettingsNotifications } from 'src/sections/settings/settings-notifications';
 import { SettingsPassword } from 'src/sections/settings/settings-password';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 
-const Page = () => (
+const Page = () => {
+  const { t } = useTranslation();
+  return (
   <>
     <Head>
       <title>
-        Settings | OctoLink
+        {t('settings.headTitle')}
       </title>
     </Head>
     <Box
@@ -21,7 +24,7 @@ const Page = () => (
       <Container maxWidth="lg">
         <Stack spacing={3}>
           <Typography variant="h4">
-            Settings
+            {t('settings.title')}
           </Typography>
           {/*<SettingsNotifications />*/}
           <SettingsPassword />
@@ -29,7 +32,8 @@ const Page = () => (
       </Container>
     </Box>
   </>
-);
+  );
+};
 
 Page.getLayout = (page) => (
   <DashboardLayout>

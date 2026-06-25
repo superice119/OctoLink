@@ -1,14 +1,17 @@
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 import { Box, Container, Stack, Typography, Unstable_Grid2 as Grid } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { AccountProfile } from 'src/sections/account/account-profile';
 import { AccountProfileDetails } from 'src/sections/account/account-profile-details';
 
-const Page = () => (
+const Page = () => {
+  const { t } = useTranslation();
+  return (
   <>
     <Head>
       <title>
-        Account | Devias Kit
+        {t('account.headTitle')}
       </title>
     </Head>
     <Box
@@ -22,7 +25,7 @@ const Page = () => (
         <Stack spacing={3}>
           <div>
             <Typography variant="h4">
-              Account
+              {t('account.pageTitle')}
             </Typography>
           </div>
           <div>
@@ -50,7 +53,8 @@ const Page = () => (
       </Container>
     </Box>
   </>
-);
+  );
+};
 
 Page.getLayout = (page) => (
   <DashboardLayout>

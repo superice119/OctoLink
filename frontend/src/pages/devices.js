@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 
 import {
   Box,
@@ -63,6 +64,7 @@ import { useTheme } from '@emotion/react';
 
 const Page = () => {
 
+  const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter()
   const auth = useAuth();
@@ -451,7 +453,7 @@ const Page = () => {
     <>
       <Head>
         <title>
-          OctoLink | 物联控制器
+          {t('devices.headTitle')}
         </title>
       </Head>
 

@@ -11,9 +11,11 @@ import { createEmotionCache } from 'src/utils/create-emotion-cache';
 import 'simplebar-react/dist/simplebar.min.css';
 import '../utils/map.css';
 import { useEffect, useState } from 'react';
+import { I18nextProvider } from 'react-i18next';
 import { BackendProvider } from 'src/contexts/backend-context';
 import { AlertProvider } from 'src/contexts/error-context';
 import { NotificationProvider } from 'src/contexts/notification-context';
+import i18n from 'src/i18n';
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -29,10 +31,20 @@ const App = (props) => {
 
   useEffect(() => {
     setTheme(createTheme());
+    // Keep <html lang> in sync with the active language for a11y/SEO.
+    if (typeof document !== 'undefined') {
+      const apply = (lng) => {
+        document.documentElement.lang = (lng || 'zh').split('-')[0];
+      };
+      apply(i18n.resolvedLanguage || i18n.language);
+      i18n.on('languageChanged', apply);
+      return () => i18n.off('languageChanged', apply);
+    }
   }, []);
 
   return theme && (
     <CacheProvider value={emotionCache}>
+      <I18nextProvider i18n={i18n}>
       <Head>
         <title>
           OctoLink | 物联控制器
@@ -64,6 +76,7 @@ const App = (props) => {
           {/* </WsProvider> */}
         </AuthProvider>
       </LocalizationProvider>
+      </I18nextProvider>
     </CacheProvider>
   );
 };

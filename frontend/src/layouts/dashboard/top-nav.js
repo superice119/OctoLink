@@ -30,6 +30,8 @@ import { WsContext } from 'src/contexts/socketio-context';
 import { useContext } from 'react';
 import TrophyIcon from '@heroicons/react/24/outline/TrophyIcon';
 import { useNotifications } from 'src/contexts/notification-context';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from 'src/components/language-switcher';
 
 const SIDE_NAV_WIDTH = 280;
 const TOP_NAV_HEIGHT = 64;
@@ -41,6 +43,7 @@ export const TopNav = (props) => {
   const auth = useAuth();
   const { unread } = useNotifications();
   const { answerCall, call, callAccepted } = useContext(WsContext);
+  const { t } = useTranslation();
 
   return ( auth.user &&
     <>
@@ -103,7 +106,7 @@ export const TopNav = (props) => {
               </IconButton>
             </Tooltip> */}
             <Link href='https://github.com/superice119/OctoLink' underline="none" target='_blank'>
-              <Tooltip title="Upgrade to Pro">
+              <Tooltip title={t('topnav.repo')}>
                 <IconButton>
                   <SvgIcon fontSize="small">
                     <TrophyIcon/>
@@ -111,7 +114,8 @@ export const TopNav = (props) => {
                 </IconButton>
               </Tooltip>
             </Link>
-            <Tooltip title="通知">
+            <LanguageSwitcher />
+            <Tooltip title={t('topnav.notifications')}>
               <IconButton component="a" href="/notifications">
                 <Badge badgeContent={unread} color="error" max={99}>
                   <SvgIcon fontSize="small"><BellIcon /></SvgIcon>

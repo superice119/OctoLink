@@ -13,6 +13,10 @@ func (h *Handler) HandleDeviceInfo(device string, data []byte, ack func()) {
 	defer ack()
 	log.Printf("Device %s info", device)
 	deviceInfo := parseDeviceInfoMsg(data)
+	if deviceInfo.SN == "" {
+		log.Printf("HandleDeviceInfo(cwmp): dropping empty-SN device for %s (malformed CWMP Inform)", device)
+		return
+	}
 	if deviceExists, _ := h.db.DeviceExists(deviceInfo.SN); !deviceExists {
 		fmtDeviceInfo, _ := json.Marshal(deviceInfo)
 		h.nc.Publish("device.v1.new", fmtDeviceInfo)

@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
@@ -14,6 +15,7 @@ import {
 } from '@mui/material';
 
 export const SettingsNotifications = () => {
+  const { t } = useTranslation();
   const handleSubmit = useCallback(
     (event) => {
       event.preventDefault();
@@ -25,8 +27,8 @@ export const SettingsNotifications = () => {
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader
-          subheader="Manage the notifications"
-          title="Notifications"
+          subheader={t('settings.notifications.manageSubheader')}
+          title={t('settings.notifications.title')}
         />
         <Divider />
         <CardContent>
@@ -42,24 +44,24 @@ export const SettingsNotifications = () => {
             >
               <Stack spacing={1}>
                 <Typography variant="h6">
-                  Notifications
+                  {t('settings.notifications.notificationsGroup')}
                 </Typography>
                 <Stack>
                   <FormControlLabel
                     control={<Checkbox defaultChecked />}
-                    label="Email"
+                    label={t('settings.notifications.email')}
                   />
                   <FormControlLabel
                     control={<Checkbox defaultChecked />}
-                    label="Push Notifications"
+                    label={t('settings.notifications.pushNotifications')}
                   />
                   <FormControlLabel
                     control={<Checkbox />}
-                    label="Text Messages"
+                    label={t('settings.notifications.textMessages')}
                   />
                   <FormControlLabel
                     control={<Checkbox defaultChecked />}
-                    label="Phone calls"
+                    label={t('settings.notifications.phoneCalls')}
                   />
                 </Stack>
               </Stack>
@@ -72,20 +74,20 @@ export const SettingsNotifications = () => {
             >
               <Stack spacing={1}>
                 <Typography variant="h6">
-                  Messages
+                  {t('settings.notifications.messagesGroup')}
                 </Typography>
                 <Stack>
                   <FormControlLabel
                     control={<Checkbox defaultChecked />}
-                    label="Email"
+                    label={t('settings.notifications.email')}
                   />
                   <FormControlLabel
                     control={<Checkbox />}
-                    label="Push Notifications"
+                    label={t('settings.notifications.pushNotifications')}
                   />
                   <FormControlLabel
                     control={<Checkbox defaultChecked />}
-                    label="Phone calls"
+                    label={t('settings.notifications.phoneCalls')}
                   />
                 </Stack>
               </Stack>
@@ -95,7 +97,7 @@ export const SettingsNotifications = () => {
         <Divider />
         <CardActions sx={{ justifyContent: 'flex-end' }}>
           <Button variant="contained">
-            Save
+            {t('settings.notifications.save')}
           </Button>
         </CardActions>
       </Card>

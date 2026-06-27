@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
@@ -31,6 +32,7 @@ const states = [
 ];
 
 export const AccountProfileDetails = () => {
+  const { t } = useTranslation();
   const [values, setValues] = useState({
     firstName: 'Anika',
     lastName: 'Visser',
@@ -65,8 +67,8 @@ export const AccountProfileDetails = () => {
     >
       <Card>
         <CardHeader
-          subheader="The information can be edited"
-          title="Profile"
+          subheader={t('account.profileDetails.subheader')}
+          title={t('account.profileDetails.title')}
         />
         <CardContent sx={{ pt: 0 }}>
           <Box sx={{ m: -1.5 }}>
@@ -80,8 +82,8 @@ export const AccountProfileDetails = () => {
               >
                 <TextField
                   fullWidth
-                  helperText="Please specify the first name"
-                  label="First name"
+                  helperText={t('account.profileDetails.firstNameHelper')}
+                  label={t('account.profileDetails.firstName')}
                   name="firstName"
                   onChange={handleChange}
                   required
@@ -94,7 +96,7 @@ export const AccountProfileDetails = () => {
               >
                 <TextField
                   fullWidth
-                  label="Last name"
+                  label={t('account.profileDetails.lastName')}
                   name="lastName"
                   onChange={handleChange}
                   required
@@ -107,7 +109,7 @@ export const AccountProfileDetails = () => {
               >
                 <TextField
                   fullWidth
-                  label="Email Address"
+                  label={t('account.profileDetails.email')}
                   name="email"
                   onChange={handleChange}
                   required
@@ -120,7 +122,7 @@ export const AccountProfileDetails = () => {
               >
                 <TextField
                   fullWidth
-                  label="Phone Number"
+                  label={t('account.profileDetails.phone')}
                   name="phone"
                   onChange={handleChange}
                   type="number"
@@ -133,7 +135,7 @@ export const AccountProfileDetails = () => {
               >
                 <TextField
                   fullWidth
-                  label="Country"
+                  label={t('account.profileDetails.country')}
                   name="country"
                   onChange={handleChange}
                   required
@@ -146,7 +148,7 @@ export const AccountProfileDetails = () => {
               >
                 <TextField
                   fullWidth
-                  label="Select State"
+                  label={t('account.profileDetails.selectState')}
                   name="state"
                   onChange={handleChange}
                   required
@@ -170,7 +172,7 @@ export const AccountProfileDetails = () => {
         <Divider />
         <CardActions sx={{ justifyContent: 'flex-end' }}>
           <Button variant="contained">
-            Save details
+            {t('account.profileDetails.saveDetails')}
           </Button>
         </CardActions>
       </Card>

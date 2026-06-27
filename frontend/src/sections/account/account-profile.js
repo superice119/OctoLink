@@ -8,6 +8,7 @@ import {
   Divider,
   Typography
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const user = {
   avatar: '/assets/avatars/avatar-anika-visser.png',
@@ -18,7 +19,10 @@ const user = {
   timezone: 'GTM-7'
 };
 
-export const AccountProfile = () => (
+export const AccountProfile = () => {
+  const { t } = useTranslation();
+
+  return (
   <Card>
     <CardContent>
       <Box
@@ -62,8 +66,9 @@ export const AccountProfile = () => (
         fullWidth
         variant="text"
       >
-        Upload picture
+        {t('account.profile.uploadPicture')}
       </Button>
     </CardActions>
   </Card>
-);
+  );
+};

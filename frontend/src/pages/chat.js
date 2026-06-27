@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
+import { useTranslation } from 'react-i18next';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import PhoneIcon from "@heroicons/react/24/solid/PhoneIcon";
 import PhoneXMarkIcon from "@heroicons/react/24/solid/PhoneXMarkIcon"
@@ -23,6 +24,7 @@ const Page = () => {
 
     const ws = useContext(WsContext)
     const router = useRouter()
+    const { t } = useTranslation();
 
     useEffect(()=>{
         var myHeaders = new Headers();
@@ -95,7 +97,7 @@ const Page = () => {
                                         <div style={{marginTop:'10px'}}>
                                         </div>
                                             {status === "online" ?
-                                            <Tooltip title="Call" 
+                                            <Tooltip title={t('chat.call')} 
                                             placement="right" 
                                             onClick={()=>{
                                                 router.push({
@@ -113,7 +115,7 @@ const Page = () => {
                                             </Tooltip>
                                             :
                                             <Tooltip 
-                                            title="Offline" 
+                                            title={t('chat.offline')} 
                                             placement="right">
                                                 <SvgIcon
                                                 sx={{cursor:'default'}}

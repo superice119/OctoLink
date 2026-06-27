@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
@@ -16,6 +17,7 @@ export const SettingsPassword = () => {
 
   let {httpRequest} = useBackendContext();
   let {setAlert} = useAlertContext();
+  const { t } = useTranslation();
 
   const [values, setValues] = useState({
     password: '',
@@ -36,8 +38,8 @@ export const SettingsPassword = () => {
     <form>
       <Card>
         <CardHeader
-          subheader="Update password"
-          title="Password"
+          subheader={t('settings.password.subheader')}
+          title={t('settings.password.title')}
         />
         <Divider />
         <CardContent>
@@ -47,7 +49,7 @@ export const SettingsPassword = () => {
           >
             <TextField
               fullWidth
-              label="Password"
+              label={t('settings.password.passwordLabel')}
               name="password"
               onChange={handleChange}
               type="password"
@@ -55,7 +57,7 @@ export const SettingsPassword = () => {
             />
             <TextField
               fullWidth
-              label="Password (Confirm)"
+              label={t('settings.password.confirmLabel')}
               name="confirm"
               onChange={handleChange}
               type="password"
@@ -71,7 +73,7 @@ export const SettingsPassword = () => {
                 console.log("Passwords do not match")
                 setAlert({
                   severity: 'error',
-                  message: 'Passwords do not match'
+                  message: t('settings.password.mismatch')
                 });
                 return
               }
@@ -80,12 +82,12 @@ export const SettingsPassword = () => {
                 console.log("Password updated")
                 setAlert({
                   severity: 'success',
-                  message: 'Password updated'
+                  message: t('settings.password.updated')
                 });
               }
             }}
           >
-            Update
+            {t('settings.password.update')}
           </Button>
         </CardActions>
       </Card>

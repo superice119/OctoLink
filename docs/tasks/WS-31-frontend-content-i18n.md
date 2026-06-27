@@ -62,6 +62,7 @@
 | `ce9da2a` | 设备 USP/CWMP 内容组件 + devices.js + usp/cwmp 详情页 |
 | `4ff90ed` | access-control(roles/tenants/users)、companies、customers 内容 |
 | `59b34ad` | settings、account、notifications、credentials、chat 内容 |
+| `c500670` | QA 复审修复:设备页分页控件 `labelRowsPerPage`/`labelDisplayedRows` 接入 i18n(中文模式不再露 `Rows per page:`),新增 `devices.page.rowsPerPage`/`displayedRows`;清理 chat.js 与 usp/cwmp devices-rpc.js 的 trailing whitespace |
 
 **改动文件**:`frontend/src/sections/{overview,devices,credentials,settings,notifications,account,companies,customer}/**`、相关 `frontend/src/pages/{index,devices,account,notifications,settings,credentials,companies,chat,access-control/*}.js`、`frontend/src/i18n/locales/{zh,en}.json`。
 

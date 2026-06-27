@@ -113,6 +113,7 @@ const Page = () => {
     alias: true,
     model: true,
     vendor: true,
+    access: true,
     status: true,
     actions: true,
     label: false
@@ -121,12 +122,13 @@ const Page = () => {
   const [showSpeedDial, setShowSpeedDial] = useState(false);
 
   const getColumns = () => {
-    localStorage.getItem("columns") ? setColumns(JSON.parse(localStorage.getItem("columns"))) : setColumns({
+    localStorage.getItem("columns") ? setColumns({ access: true, ...JSON.parse(localStorage.getItem("columns")) }) : setColumns({
       version: true,
       sn: true,
       alias: false,
       model: true,
       vendor: true,
+      access: true,
       status: true,
       actions: true,
       label: false
@@ -166,14 +168,26 @@ const Page = () => {
 
   const status = (s) => {
     if (s == 0) {
-      return "Offline"
+      return t('devices.status.offline')
     } else if (s == 1) {
-      return "Associating"
+      return t('devices.status.associating')
     } else if (s == 2) {
-      return "Online"
+      return t('devices.status.online')
     } else {
-      return "Unknown"
+      return t('devices.status.unknown')
     }
+  }
+
+  // Access method (MTP) the agent is connected through. The controller exposes a
+  // per-MTP status on each device (0 offline / 1 associating / 2 online); show the
+  // protocol name(s) that are not offline. Protocol names are not translated.
+  const accessMethod = (order) => {
+    const mtps = []
+    if (order.Mqtt >= 1) mtps.push("MQTT")
+    if (order.Websockets >= 1) mtps.push("WebSocket")
+    if (order.Stomp >= 1) mtps.push("STOMP")
+    if (order.Cwmp >= 1) mtps.push("CWMP")
+    return mtps.length ? mtps.join(", ") : "—"
   }
 
   const getDeviceProtocol = (order) => {
@@ -475,7 +489,7 @@ const Page = () => {
                     xs={4}
                     defaultValue=""
                     fullWidth
-                    placeholder="Search Device"
+                    placeholder={t('devices.search')}
                     onKeyDownCapture={(e) => {
                       if (e.key === 'Enter') {
                         console.log("Fetch devices per id: ", e.target.value)
@@ -543,19 +557,20 @@ const Page = () => {
                   horizontal: "center"
                 }}
               >
-                <MenuItem dense onClick={() => changeColumn("sn")}><Checkbox checked={columns["sn"]} /*onChange={()=>changeColumn("sn")}*/ /><ListItemText primary="Serial Number" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("alias")}><Checkbox checked={columns["alias"]} /*onChange={()=>changeColumn("alias")}*/ /><ListItemText primary="Alias" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("model")}><Checkbox checked={columns["model"]} /*onChange={() => changeColumn("model")}*/ /><ListItemText primary="Model" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("vendor")}><Checkbox checked={columns["vendor"]} /*onChange={() => changeColumn("vendor")}*/ /><ListItemText primary="Vendor" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("version")}><Checkbox checked={columns["version"]} /*onChange={() => changeColumn("version")}*/ /><ListItemText primary="Version" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("status")}><Checkbox checked={columns["status"]} /*onChange={() => changeColumn("status")}*/ /><ListItemText primary="Status" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("actions")}><Checkbox checked={columns["actions"]} /*onChange={() => changeColumn("actions")}*/ /><ListItemText primary="Actions" /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("sn")}><Checkbox checked={columns["sn"]} /*onChange={()=>changeColumn("sn")}*/ /><ListItemText primary={t('devices.col.serialNumber')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("alias")}><Checkbox checked={columns["alias"]} /*onChange={()=>changeColumn("alias")}*/ /><ListItemText primary={t('devices.col.alias')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("model")}><Checkbox checked={columns["model"]} /*onChange={() => changeColumn("model")}*/ /><ListItemText primary={t('devices.col.model')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("vendor")}><Checkbox checked={columns["vendor"]} /*onChange={() => changeColumn("vendor")}*/ /><ListItemText primary={t('devices.col.vendor')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("version")}><Checkbox checked={columns["version"]} /*onChange={() => changeColumn("version")}*/ /><ListItemText primary={t('devices.col.version')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("access")}><Checkbox checked={columns["access"]} /><ListItemText primary={t('devices.col.access')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("status")}><Checkbox checked={columns["status"]} /*onChange={() => changeColumn("status")}*/ /><ListItemText primary={t('devices.col.status')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("actions")}><Checkbox checked={columns["actions"]} /*onChange={() => changeColumn("actions")}*/ /><ListItemText primary={t('devices.col.actions')} /></MenuItem>
                 {/* <MenuItem dense onClick={() => changeColumn("label")}><Checkbox checked={columns["label"]} /><ListItemText primary="Labels" /></MenuItem> */}
               </Menu>
             </div>
                 <div>
                   <Card sx={{ height: "100%" }}>
-                    <CardHeader title="Devices" />
+                    <CardHeader title={t('devices.title')} />
                     <Scrollbar sx={{ flexGrow: 1 }}>
                       <Box sx={{ minWidth: 800 }}>
                         <TableContainer sx={{ maxHeight: 600 }}>
@@ -575,10 +590,10 @@ const Page = () => {
                                   />
                                 </TableCell> */}
                                 {columns["sn"] && <TableCell align="center">
-                                  Serial Number
+                                  {t('devices.col.serialNumber')}
                                 </TableCell>}
                                 {columns["alias"] && <TableCell>
-                                  Alias
+                                  {t('devices.col.alias')}
                                 </TableCell>}
                                 {
                                   columns["label"] && <TableCell >
@@ -586,13 +601,16 @@ const Page = () => {
                                   </TableCell>
                                 }
                                 {columns["model"] && <TableCell>
-                                  Model
+                                  {t('devices.col.model')}
                                 </TableCell>}
                                 {columns["vendor"] && <TableCell>
-                                  Vendor
+                                  {t('devices.col.vendor')}
                                 </TableCell>}
                                 {columns["version"] && <TableCell>
-                                  Version
+                                  {t('devices.col.version')}
+                                </TableCell>}
+                                {columns["access"] && <TableCell>
+                                  {t('devices.col.access')}
                                 </TableCell>}
                                 {columns["status"] &&
                                   <TableCell>
@@ -606,7 +624,7 @@ const Page = () => {
                                           setStatusOrder("asc")
                                           fetchDevicePerPage(page, "asc")
                                         }
-                                      }}>Status ↑↓</span>
+                                      }}>{t('devices.col.status')} ↑↓</span>
                                     </Tooltip>
                                     {/* <Box >
                                     <Tooltip title="Change status display order" placement="top">
@@ -620,7 +638,7 @@ const Page = () => {
                                   </Box> */}
                                   </TableCell>}
                                 {columns["actions"] && <TableCell align="center">
-                                  Actions
+                                  {t('devices.col.actions')}
                                 </TableCell>}
                               </TableRow>
                             </TableHead>
@@ -666,6 +684,9 @@ const Page = () => {
                                     </TableCell>}
                                     {columns["version"] && <TableCell>
                                       {order.Version}
+                                    </TableCell>}
+                                    {columns["access"] && <TableCell>
+                                      {accessMethod(order)}
                                     </TableCell>}
                                     {columns["status"] && <TableCell>
                                       {/* <SeverityPill color={statusMap[order.Status]}>
@@ -743,7 +764,7 @@ const Page = () => {
                                 <TableRow>
                                   <TableCell colSpan={7} align="center">
                                     {
-                                      deviceFound ? <CircularProgress/> : "No device found"
+                                      deviceFound ? <CircularProgress/> : t('devices.noDevice')
                                     }
                                   </TableCell>
                                 </TableRow>
@@ -751,9 +772,10 @@ const Page = () => {
                             }
                           </Table>
                         </TableContainer>
-                        {(pages > 0) && total && <TablePagination 
+                        {(pages > 0) && total && <TablePagination
                           rowsPerPageOptions={rowsPerPageOptions}
                           component="div"
+                          labelRowsPerPage={t('devices.rowsPerPage')}
                           count={total}
                           rowsPerPage={rowsPerPage}
                           page={page-1}
@@ -867,7 +889,7 @@ const Page = () => {
           <SvgIcon style={{ marginRight: "10px", marginBottom: "-5px" }}>
             <FunnelIcon />
           </SvgIcon>
-          Filter
+          {t('devices.filter.title')}
         </DialogTitle>
         {filterOptions && <DialogContent>
           <Stack spacing={2} marginTop={1} minWidth={400}>
@@ -875,12 +897,12 @@ const Page = () => {
               spacing={2}
               direction={'row'}
             >
-              <TextField label="Alias" variant="filled" sx={{minWidth:"48%"}}
+              <TextField label={t('devices.filter.alias')} variant="filled" sx={{minWidth:"48%"}}
                 value={newFiltersList["alias"]}
                 onChange={(e) => setNewFiltersList({ ...newFiltersList, "alias": e.target.value })}
               />
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Type</InputLabel>
+                <InputLabel>{t('devices.filter.type')}</InputLabel>
                 <Select
                   value={newFiltersList["type"]}
                   onChange={(e) => setNewFiltersList({ ...newFiltersList, "type": e.target.value })}
@@ -900,7 +922,7 @@ const Page = () => {
               direction={'row'}
             >
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Vendor</InputLabel>
+                <InputLabel>{t('devices.filter.vendor')}</InputLabel>
                 <Select
                   value={newFiltersList["vendor"]}
                   onChange={(e) => setNewFiltersList({ ...newFiltersList, "vendor": e.target.value })}
@@ -914,7 +936,7 @@ const Page = () => {
                 </Select>
               </FormControl>
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Version</InputLabel>
+                <InputLabel>{t('devices.filter.version')}</InputLabel>
                 <Select
                   value={newFiltersList["version"]}
                   onChange={(e) => setNewFiltersList({ ...newFiltersList, "version": e.target.value })}
@@ -933,7 +955,7 @@ const Page = () => {
               direction={'row'}
             >
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Status</InputLabel>
+                <InputLabel>{t('devices.filter.status')}</InputLabel>
                 <Select
                   value={
                     newFiltersList["status"]
@@ -960,8 +982,8 @@ const Page = () => {
                   }}
                   fullWidth
                 >
-                  <MenuItem value={"2"}>Online</MenuItem>
-                  <MenuItem value={"0"}>Offline</MenuItem>
+                  <MenuItem value={"2"}>{t('devices.status.online')}</MenuItem>
+                  <MenuItem value={"0"}>{t('devices.status.offline')}</MenuItem>
                 </Select>
               </FormControl>
               {/* <FormControl variant="filled" sx={{ minWidth: "48%" }}>
@@ -979,7 +1001,7 @@ const Page = () => {
                   </Select>
               </FormControl> */}
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Model</InputLabel>
+                <InputLabel>{t('devices.filter.model')}</InputLabel>
                 <Select
                   value={newFiltersList["model"]}
                   onChange={(e) => setNewFiltersList({ ...newFiltersList, "model": e.target.value })}
@@ -998,7 +1020,7 @@ const Page = () => {
               direction={'row'}
             >
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Type</InputLabel>
+                <InputLabel>{t('devices.filter.type')}</InputLabel>
                 <Select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
@@ -1028,13 +1050,13 @@ const Page = () => {
             } */
 
             //setFiltersList(defaultFiltersList)
-          }}>Cancel</Button>
-          <Button onClick={() => { 
+          }}>{t('devices.filter.cancel')}</Button>
+          <Button onClick={() => {
             setFiltersList(newFiltersList)
             setShowFilter(false)
             console.log("filters list:", filtersList)
             fetchDevicePerPage(1, statusOrder, newFiltersList)
-          }}>Apply</Button>
+          }}>{t('devices.filter.apply')}</Button>
         </DialogActions>
       </Dialog>
     </>

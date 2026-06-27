@@ -56,7 +56,38 @@
     "passwordLabel": "Password"
   },
   "devices": {
-    "headTitle": "Devices | OctoLink"
+    "headTitle": "Devices | OctoLink",
+    "title": "Devices",
+    "search": "Search Device",
+    "rowsPerPage": "Rows per page:",
+    "noDevice": "No device found",
+    "col": {
+      "serialNumber": "Serial Number",
+      "alias": "Alias",
+      "model": "Model",
+      "vendor": "Vendor",
+      "version": "Version",
+      "access": "Access",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "associating": "Associating",
+      "unknown": "Unknown"
+    },
+    "filter": {
+      "title": "Filter",
+      "alias": "Alias",
+      "type": "Type",
+      "vendor": "Vendor",
+      "version": "Version",
+      "status": "Status",
+      "model": "Model",
+      "cancel": "Cancel",
+      "apply": "Apply"
+    }
   },
   "overview": {
     "headTitle": "Overview | OctoLink"

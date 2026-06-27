@@ -56,7 +56,38 @@
     "passwordLabel": "密码"
   },
   "devices": {
-    "headTitle": "设备 | OctoLink"
+    "headTitle": "设备 | OctoLink",
+    "title": "设备",
+    "search": "搜索设备",
+    "rowsPerPage": "每页行数：",
+    "noDevice": "未找到设备",
+    "col": {
+      "serialNumber": "序列号",
+      "alias": "别名",
+      "model": "型号",
+      "vendor": "厂商",
+      "version": "版本",
+      "access": "接入方式",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "status": {
+      "online": "在线",
+      "offline": "离线",
+      "associating": "关联中",
+      "unknown": "未知"
+    },
+    "filter": {
+      "title": "筛选",
+      "alias": "别名",
+      "type": "类型",
+      "vendor": "厂商",
+      "version": "版本",
+      "status": "状态",
+      "model": "型号",
+      "cancel": "取消",
+      "apply": "应用"
+    }
   },
   "overview": {
     "headTitle": "总览 | OctoLink"

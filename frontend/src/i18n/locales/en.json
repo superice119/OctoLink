@@ -358,6 +358,8 @@
       "titleStatus": "Status",
       "titleVendors": "Vendors",
       "titleDevicesType": "Devices Type",
+      "online": "Online",
+      "offline": "Offline",
       "desktop": "Desktop",
       "tablet": "Tablet",
       "phone": "Phone"

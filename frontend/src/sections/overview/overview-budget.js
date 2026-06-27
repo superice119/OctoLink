@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import ArrowDownIcon from '@heroicons/react/24/solid/ArrowDownIcon';
 import ArrowUpIcon from '@heroicons/react/24/solid/ArrowUpIcon';
 import CurrencyDollarIcon from '@heroicons/react/24/solid/CurrencyDollarIcon';
@@ -6,6 +7,7 @@ import { Avatar, Card, CardContent, Stack, SvgIcon, Typography } from '@mui/mate
 
 export const OverviewBudget = (props) => {
   const { difference, positive = false, sx, value } = props;
+  const { t } = useTranslation();
 
   return (
     <Card sx={sx}>
@@ -21,7 +23,7 @@ export const OverviewBudget = (props) => {
               color="text.secondary"
               variant="overline"
             >
-              Budget
+              {t('overview.budget')}
             </Typography>
             <Typography variant="h4">
               {value}
@@ -68,7 +70,7 @@ export const OverviewBudget = (props) => {
               color="text.secondary"
               variant="caption"
             >
-              Since last month
+              {t('overview.sinceLastMonth')}
             </Typography>
           </Stack>
         )}

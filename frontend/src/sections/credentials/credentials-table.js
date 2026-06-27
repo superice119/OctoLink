@@ -33,6 +33,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 import PencilIcon from '@heroicons/react/24/outline/PencilIcon';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export const CredentialsTable = (props) => {
   const {
@@ -53,6 +54,7 @@ export const CredentialsTable = (props) => {
   const [showPassword, setShowPassword] = useState({})
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [credentialToDelete, setCredentialToDelete] = useState("")
+  const { t } = useTranslation();
 
   useEffect(()=>{
     Object.keys(items).map((key) => {
@@ -74,13 +76,13 @@ export const CredentialsTable = (props) => {
             <TableHead>
               <TableRow>
                 <TableCell align='center'>
-                  Username
+                  {t('credentials.table.username')}
                 </TableCell>
                 <TableCell align='center'>
-                  Password
+                  {t('credentials.table.password')}
                 </TableCell>
                 <TableCell align='center'>
-                  Actions
+                  {t('credentials.table.actions')}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -150,10 +152,10 @@ export const CredentialsTable = (props) => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">{"Delete User"}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{t('credentials.table.deleteTitle')}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          Are you sure you want to delete this credential?
+          {t('credentials.table.deleteConfirm')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
@@ -161,14 +163,14 @@ export const CredentialsTable = (props) => {
           setShowDeleteDialog(false)
           setCredentialToDelete("")
         }} color="primary">
-          Cancel
+          {t('credentials.table.cancel')}
         </Button>
         <Button onClick={() => {
           deleteCredential(credentialToDelete);
           setShowDeleteDialog(false);
           setCredentialToDelete("")
         }} color="primary" autoFocus>
-          Delete
+          {t('credentials.table.delete')}
         </Button>
       </DialogActions>
     </Dialog>

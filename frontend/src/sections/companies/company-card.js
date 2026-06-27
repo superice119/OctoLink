@@ -2,9 +2,11 @@ import PropTypes from 'prop-types';
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import ClockIcon from '@heroicons/react/24/solid/ClockIcon';
 import { Avatar, Box, Card, CardContent, Divider, Stack, SvgIcon, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 export const CompanyCard = (props) => {
   const { company } = props;
+  const { t } = useTranslation();
 
   return (
     <Card
@@ -66,7 +68,7 @@ export const CompanyCard = (props) => {
             display="inline"
             variant="body2"
           >
-            Updated 2hr ago
+            {t('companies.card.updatedAgo')}
           </Typography>
         </Stack>
         <Stack
@@ -85,7 +87,7 @@ export const CompanyCard = (props) => {
             display="inline"
             variant="body2"
           >
-            {company.downloads} Downloads
+            {t('companies.card.downloads', { count: company.downloads })}
           </Typography>
         </Stack>
       </Stack>

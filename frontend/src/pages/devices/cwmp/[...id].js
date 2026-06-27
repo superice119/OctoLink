@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 import { Box, Stack, Typography, Container, Unstable_Grid2 as Grid,
 Tab, 
 Tabs,
@@ -26,6 +27,7 @@ import MapPinIcon from '@heroicons/react/24/outline/MapPinIcon';
 
 const Page = () => {
     const router = useRouter()
+    const { t } = useTranslation()
 
     const deviceID = router.query.id[0]
     const section = router.query.id[1]
@@ -45,7 +47,7 @@ const Page = () => {
     <>
         <Head>
             <title>
-                OctoLink | 物联控制器
+                {t('devices.detail.controllerTitle')}
             </title>
         </Head>
         <Box
@@ -59,7 +61,7 @@ const Page = () => {
             <Stack spacing={3} mb={3}>
                 <Breadcrumbs separator="›" aria-label="breadcrumb" ml={10}>
                 {[<Link underline="hover" key="1" color="inherit" href="/devices">
-                    Devices
+                    {t('devices.page.breadcrumbDevices')}
                 </Link>,
                 <Link
                 underline="none"
@@ -144,7 +146,7 @@ const Page = () => {
                         onClick={()=>{router.push(`/devices/cwmp/${deviceID}/msg`)}} 
                         icon={<SvgIcon><EnvelopeIcon/></SvgIcon>} 
                         iconPosition={"end"} 
-                        label="Messages" />
+                        label={t('devices.detail.messagesTab')} />
                     </Tabs>
                 </Box>
                 </Stack>

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import ComputerDesktopIcon from '@heroicons/react/24/solid/ComputerDesktopIcon';
 import DeviceTabletIcon from '@heroicons/react/24/solid/DeviceTabletIcon';
 import PhoneIcon from '@heroicons/react/24/solid/PhoneIcon';
@@ -100,11 +101,22 @@ const iconMap = {
 export const OverviewTraffic = (props) => {
   const { chartSeries, labels, sx, title } = props;
   const chartOptions = useChartOptions(labels,title);
+  const { t } = useTranslation();
+
+  // `title` stays the original English constant so chart-color logic in
+  // useChartOptions keeps working; only the displayed heading is translated.
+  const displayTitle = title === 'Status'
+    ? t('overview.traffic.titleStatus')
+    : title === 'Vendors'
+      ? t('overview.traffic.titleVendors')
+      : title === 'Devices Type'
+        ? t('overview.traffic.titleDevicesType')
+        : title;
 
   return (
     <Card sx={sx}>
       <div style={{display:'flex',justifyContent:'center'}}>
-      <CardHeader title={title} />
+      <CardHeader title={displayTitle} />
       </div>
       <CardContent>
         <Chart

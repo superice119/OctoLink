@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Card,
   CardContent,
@@ -427,6 +428,7 @@ function ShowParamsWithValues({
 export const DevicesDiscovery = () => {
 
 const router = useRouter()
+const { t } = useTranslation()
 
 const [deviceCommands, setDeviceCommands] = useState({})
 const [deviceParameters, setDeviceParameters] = useState(null)
@@ -1034,7 +1036,7 @@ const getDeviceParameterInstances = async (raw) =>{
                     />
                     </DialogContent>
                     <DialogActions>
-                    <Button onClick={()=>{setOpen(false)}}>Cancel</Button>
+                    <Button onClick={()=>{setOpen(false)}}>{t('devices.usp.discovery.cancel')}</Button>
                     <Button onClick={async ()=>{
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -1118,7 +1120,7 @@ const getDeviceParameterInstances = async (raw) =>{
 
         setOpen(false)
     }
-                    }}>Apply</Button>
+                    }}>{t('devices.usp.discovery.apply')}</Button>
                     </DialogActions>
                 </Dialog>
                 <Dialog open={errorModal} 
@@ -1131,7 +1133,7 @@ const getDeviceParameterInstances = async (raw) =>{
                 >
                 <DialogTitle id="scroll-dialog-title">
                 <Box display="flex" alignItems="center">
-                    <Box flexGrow={1} >Response</Box>
+                    <Box flexGrow={1} >{t('devices.usp.discovery.response')}</Box>
                     <Box>
                         <IconButton onClick={()=>{
                                     setErrorModalText("")
@@ -1156,7 +1158,7 @@ const getDeviceParameterInstances = async (raw) =>{
                     <Button onClick={()=>{
                         setErrorModalText("")
                         setErrorModal(false)
-                    }}>OK</Button>
+                    }}>{t('devices.usp.discovery.ok')}</Button>
                     </DialogActions>
                 </Dialog>
                 {deviceCommandToExecute && <Dialog open={openCommandDialog} 
@@ -1172,7 +1174,7 @@ const getDeviceParameterInstances = async (raw) =>{
                 </DialogTitle>    
                     <DialogContent dividers={scroll === 'paper'}>
                     {deviceCommandToExecute[Object.keys(deviceCommandToExecute)[0]].input_arg_names[0]!=undefined && <DialogContentText id="scroll-dialog-description" tabIndex={-1}>
-                    Input Arguments:
+                    {t('devices.usp.discovery.inputArguments')}
                     </DialogContentText>}
                     {deviceCommandToExecute[Object.keys(deviceCommandToExecute)[0]].input_arg_names[0] !=undefined && 
                     deviceCommandToExecute[Object.keys(deviceCommandToExecute)[0]].input_arg_names?.map(arg => {
@@ -1196,7 +1198,7 @@ const getDeviceParameterInstances = async (raw) =>{
                         setInputArgsValue("")
                         setDeviceCommandToExecute(null)
                         setOpenCommandDialog(false)
-                    }}>Cancel</Button>
+                    }}>{t('devices.usp.discovery.cancel')}</Button>
                     <Button onClick={async ()=>{
                        let raw = JSON.stringify(
                         {
@@ -1239,7 +1241,7 @@ const getDeviceParameterInstances = async (raw) =>{
                                 return
                             }
                        }
-                    }}>Apply</Button>
+                    }}>{t('devices.usp.discovery.apply')}</Button>
                     </DialogActions>
                 </Dialog>}
         <Backdrop

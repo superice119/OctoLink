@@ -6,6 +6,7 @@ import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import CheckCircleIcon from '@heroicons/react/24/outline/CheckCircleIcon';
 import { format } from 'date-fns';
 import { useNotifications } from 'src/contexts/notification-context';
+import { useTranslation } from 'react-i18next';
 
 const TYPE_COLORS = {
   event: 'primary',
@@ -19,24 +20,25 @@ const TYPE_COLORS = {
 
 export const NotificationsList = () => {
   const { items, unread, markAllRead, clearAll } = useNotifications();
+  const { t } = useTranslation();
 
   return (
     <Card>
       <CardHeader
         title={(
           <Box display="flex" alignItems="center" gap={1}>
-            通知中心
+            {t('notifications.list.title')}
             {unread > 0 && <Chip label={unread} color="error" size="small" />}
           </Box>
         )}
         action={(
           <Box>
-            <Tooltip title="全部标为已读">
+            <Tooltip title={t('notifications.list.markAllRead')}>
               <IconButton onClick={markAllRead}>
                 <SvgIcon fontSize="small"><CheckCircleIcon /></SvgIcon>
               </IconButton>
             </Tooltip>
-            <Tooltip title="清空">
+            <Tooltip title={t('notifications.list.clearAll')}>
               <IconButton onClick={clearAll}>
                 <SvgIcon fontSize="small"><TrashIcon /></SvgIcon>
               </IconButton>
@@ -48,7 +50,7 @@ export const NotificationsList = () => {
       <List disablePadding>
         {items.length === 0 && (
           <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">暂无通知</Typography>
+            <Typography variant="body2" color="text.secondary">{t('notifications.list.empty')}</Typography>
           </Box>
         )}
         {items.map((n, idx) => (
@@ -73,11 +75,11 @@ export const NotificationsList = () => {
               secondary={(
                 <Box>
                   <Typography variant="caption" color="text.secondary">
-                    设备: {n.device_sn}
+                    {t('notifications.list.device')}: {n.device_sn}
                   </Typography>
                   {n.param_value && (
                     <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      值: {n.param_value}
+                      {t('notifications.list.value')}: {n.param_value}
                     </Typography>
                   )}
                   <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>

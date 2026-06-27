@@ -218,7 +218,7 @@ const Page = () => {
                   onClick={() => setAddDeviceDialogOpen(true)}
                   variant="contained"
                 >
-                  Add
+                  {t('credentials.add')}
                 </Button>
               </div>
             </Stack>
@@ -226,7 +226,7 @@ const Page = () => {
             <OutlinedInput
             defaultValue=""
             fullWidth
-            placeholder="Search credentials by username"
+            placeholder={t('credentials.searchPlaceholder')}
             onKeyDownCapture={(e) => {
                 if (e.key === 'Enter') {
                   console.log("Fetch credentials per username: ", e.target.value)
@@ -253,7 +253,7 @@ const Page = () => {
                     justifyContent: 'center'
                 }}
                 >
-                <p>Credential Not Found</p>
+                <p>{t('credentials.notFound')}</p>
                 </Box>:
             <CredentialsTable
               items={devices}
@@ -275,7 +275,7 @@ const Page = () => {
         setNewDeviceData({})
       }}
       >
-        <DialogTitle>Create New Credentials</DialogTitle>
+        <DialogTitle>{t('credentials.createTitle')}</DialogTitle>
         <DialogContent>
           <Stack
             alignItems="center"
@@ -292,7 +292,7 @@ const Page = () => {
               // focused={isUsernameEmpty}
               // color={isUsernameEmpty ? "error" : "primary"}
               error={isUsernameEmpty || isUsernameExistent}
-              helperText={isUsernameEmpty ? "Username invalid": (isUsernameExistent ? "Username already exists" : "")}
+              helperText={isUsernameEmpty ? t('credentials.usernameInvalid') : (isUsernameExistent ? t('credentials.usernameExists') : "")}
               autoFocus
               required
               margin="dense"
@@ -310,7 +310,7 @@ const Page = () => {
             </TextField>
             </FormControl>
             <FormControl sx={{ m: 1, width: '25ch' }} variant="standard">
-                <InputLabel htmlFor="standard-adornment-password">Password</InputLabel>
+                <InputLabel htmlFor="standard-adornment-password">{t('credentials.passwordLabel')}</InputLabel>
                 <Input
                 id="standard-adornment-password"
                 type={showPassword ? 'text' : 'password'}
@@ -352,7 +352,7 @@ const Page = () => {
               setIsUsernameExistent(false)
               setNewDeviceData({})
             }
-          }>Cancel</Button>
+          }>{t('credentials.table.cancel')}</Button>
           <Button onClick={()=>{
             const { password, ...nonSensitiveData } = newDeviceData;
             console.log("new user data: ", nonSensitiveData)
@@ -364,7 +364,7 @@ const Page = () => {
             }
             setCreatingNewCredential(true)
             createCredential(newDeviceData)
-          }}>Confirm</Button>
+          }}>          {t('credentials.confirm')}</Button>
         </DialogActions>
         {
         <Backdrop

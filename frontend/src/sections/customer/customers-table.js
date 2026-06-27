@@ -30,6 +30,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { getInitials } from 'src/utils/get-initials';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ROLE_COLORS = {
   super_admin: 'error',
@@ -58,6 +59,13 @@ export const CustomersTable = (props) => {
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState("")
+  const { t } = useTranslation();
+  const ROLE_LABELS = {
+    super_admin: t('accessControl.users.roles.superAdmin'),
+    tenant_admin: t('accessControl.users.roles.tenantAdmin'),
+    operator: t('accessControl.users.roles.operator'),
+    viewer: t('accessControl.users.roles.viewer'),
+  };
   
   return (
     <Card>
@@ -67,25 +75,25 @@ export const CustomersTable = (props) => {
             <TableHead>
               <TableRow>
                 <TableCell sx={{marginLeft:"30px"}}>
-                  Name
+                  {t('customers.table.name')}
                 </TableCell>
                 <TableCell>
-                  Email
+                  {t('customers.table.email')}
                 </TableCell>
                 <TableCell>
-                  Phone
+                  {t('customers.table.phone')}
                 </TableCell>
                 <TableCell>
-                  Role
+                  {t('customers.table.role')}
                 </TableCell>
                 <TableCell>
-                  Tenant
+                  {t('customers.table.tenant')}
                 </TableCell>
                 <TableCell>
-                  Created At
+                  {t('customers.table.createdAt')}
                 </TableCell>
                 <TableCell>
-                  Actions
+                  {t('customers.table.actions')}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -127,13 +135,13 @@ export const CustomersTable = (props) => {
                             onChange={(e) => assignRole && assignRole(customer.email, e.target.value, customer.tenant_id || 'default')}
                           >
                             {['super_admin','tenant_admin','operator','viewer'].map((r) => (
-                              <MenuItem key={r} value={r}>{r}</MenuItem>
+                              <MenuItem key={r} value={r}>{ROLE_LABELS[r] || r}</MenuItem>
                             ))}
                           </Select>
                         </FormControl>
                       ) : (
                         <Chip
-                          label={effectiveRole}
+                          label={ROLE_LABELS[effectiveRole] || effectiveRole}
                           color={ROLE_COLORS[effectiveRole] || 'default'}
                           size="small"
                         />
@@ -184,10 +192,10 @@ export const CustomersTable = (props) => {
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">{"Delete User"}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{t('customers.table.deleteTitle')}</DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          Are you sure you want to delete this user?
+          {t('customers.table.deleteConfirm')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
@@ -195,14 +203,14 @@ export const CustomersTable = (props) => {
           setShowDeleteDialog(false)
           setUserToDelete("")
         }} color="primary">
-          Cancel
+          {t('customers.table.cancel')}
         </Button>
         <Button onClick={() => {
           deleteUser(userToDelete);
           setShowDeleteDialog(false);
           setUserToDelete("")
         }} color="primary" autoFocus>
-          Delete
+          {t('customers.table.delete')}
         </Button>
       </DialogActions>
     </Dialog>

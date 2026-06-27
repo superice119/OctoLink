@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import ArrowRightIcon from '@heroicons/react/24/solid/ArrowRightIcon';
 import ArrowTopRightOnSquareIcon from '@heroicons/react/24/solid/ArrowTopRightOnSquareIcon';
 import {
@@ -35,15 +36,15 @@ const statusMap = {
   0: 'error'
 };
 
-const status = (s)=>{
+const statusKey = (s)=>{
   if (s == 0){
-    return "Offline"
+    return "statusOffline"
   } else if (s == 1){
-    return "Associating"
+    return "statusAssociating"
   }else if (s==2){
-    return "Online"
+    return "statusOnline"
   }else {
-    return "Unknown"
+    return "statusUnknown"
   }
 }
 
@@ -59,6 +60,7 @@ export const OverviewLatestOrders = (props) => {
   const { orders = [], sx } = props;
 
   const router = useRouter()
+  const { t } = useTranslation();
 
   const [showSetDeviceAlias, setShowSetDeviceAlias] = useState(false);
   const [deviceAlias, setDeviceAlias] = useState(null);
@@ -115,32 +117,32 @@ export const OverviewLatestOrders = (props) => {
 
   return (<div>
     <Card sx={sx}>
-      <CardHeader title="Devices" />
+      <CardHeader title={t('overview.latestOrders.title')} />
       <Scrollbar sx={{ flexGrow: 1 }}>
         <Box sx={{ minWidth: 800 }}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell align="center">
-                  Serial Number
+                  {t('overview.latestOrders.serialNumber')}
                 </TableCell>
                 <TableCell>
-                  Alias
+                  {t('overview.latestOrders.alias')}
                 </TableCell>
                 <TableCell>
-                  Model
+                  {t('overview.latestOrders.model')}
                 </TableCell>
                 <TableCell>
-                  Vendor
+                  {t('overview.latestOrders.vendor')}
                 </TableCell>
                 <TableCell>
-                  Version
+                  {t('overview.latestOrders.version')}
                 </TableCell>
                 <TableCell>
-                  Status
+                  {t('overview.latestOrders.status')}
                 </TableCell>
                 <TableCell align="center">
-                  Actions
+                  {t('overview.latestOrders.actions')}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -169,12 +171,12 @@ export const OverviewLatestOrders = (props) => {
                     </TableCell>
                     <TableCell>
                     <SeverityPill color={statusMap[order.Status]}>
-                        {status(order.Status)}
+                        {t('overview.latestOrders.' + statusKey(order.Status))}
                     </SeverityPill>
                     </TableCell>
                     <TableCell align="center">
                     {order.Status == 2 && 
-                      <Tooltip title="Access the device">
+                      <Tooltip title={t('overview.latestOrders.accessDevice')}>
                         <Button
                           onClick={()=>{
                             if (getDeviceProtocol(order) == "usp"){
@@ -192,7 +194,7 @@ export const OverviewLatestOrders = (props) => {
                           </SvgIcon>
                         </Button>
                       </Tooltip>}
-                      <Tooltip title="Edit the device alias">
+                      <Tooltip title={t('overview.latestOrders.editAlias')}>
                         <Button
                           onClick={()=>{
                             setDeviceToBeChanged(index)
@@ -235,7 +237,7 @@ export const OverviewLatestOrders = (props) => {
     {showSetDeviceAlias&&
     <Dialog open={showSetDeviceAlias}>
       <DialogContent>
-        <InputLabel>Device Alias</InputLabel>
+        <InputLabel>{t('overview.latestOrders.deviceAlias')}</InputLabel>
         <Input value={deviceAlias} onChange={(e)=>{setDeviceAlias(e.target.value)}}                          
         onKeyUp={e => {
           if (e.key === 'Enter') {
@@ -249,10 +251,10 @@ export const OverviewLatestOrders = (props) => {
           setShowSetDeviceAlias(false)
           setDeviceAlias(null)
           setDeviceToBeChanged(null)
-        }}>Cancel</Button>
+        }}>{t('overview.latestOrders.cancel')}</Button>
         <Button onClick={()=>{
           setNewDeviceAlias(deviceAlias, orders[deviceToBeChanged].SN)
-        }}>Save</Button>
+        }}>{t('overview.latestOrders.save')}</Button>
       </DialogActions>
     </Dialog>}
     </div>

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 import ArrowRightIcon from '@heroicons/react/24/solid/ArrowRightIcon';
 import {
@@ -107,6 +108,7 @@ const useChartOptions = () => {
 export const OverviewSales = (props) => {
   const { chartSeries, sx } = props;
   const chartOptions = useChartOptions();
+  const { t } = useTranslation();
 
   return (
     <Card sx={sx}>
@@ -121,10 +123,10 @@ export const OverviewSales = (props) => {
               </SvgIcon>
             )}
           >
-            Sync
+            {t('overview.sales.sync')}
           </Button>
         )}
-        title="Sales"
+        title={t('overview.sales.title')}
       />
       <CardContent>
         <Chart
@@ -146,7 +148,7 @@ export const OverviewSales = (props) => {
           )}
           size="small"
         >
-          Overview
+          {t('overview.sales.viewAll')}
         </Button>
       </CardActions>
     </Card>

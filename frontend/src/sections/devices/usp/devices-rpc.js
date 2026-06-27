@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
@@ -39,6 +40,7 @@ export const DevicesRPC = () => {
 
 const router = useRouter()
 let { httpRequest } = useBackendContext()
+const { t } = useTranslation()
 
 const [open, setOpen] = useState(false);
 const [scroll, setScroll] = useState('paper');
@@ -326,7 +328,7 @@ const fetchMessages = async () => {
       <Card>
         <CardHeader sx={{ justifyContent: 'flex-end'}} 
           avatar={<SvgIcon>< EnvelopeIcon/></SvgIcon>}
-          title="Custom Message" 
+          title={t('devices.usp.rpc.customMessage')}
           action={ 
           <Stack direction={"row"} spacing={1} width={"100%"} justifyContent={"flex-end"}>
             <Button sx={{ backgroundColor: "rgba(48, 109, 111, 0.04)" }}
@@ -334,7 +336,7 @@ const fetchMessages = async () => {
             onClick={()=>{setNewMessage(true)}}
             >
               <Stack direction={"row"} spacing={1}>
-                New Message
+                {t('devices.usp.rpc.newMessage')}
               </Stack>
             </Button>
           </Stack>}
@@ -344,7 +346,7 @@ const fetchMessages = async () => {
         <CardContent>
           <Stack pb={4} spacing={5} direction={"row"}>
             <FormControl sx={{display:"flex", width: "15%"}} variant="standard" >
-            <InputLabel>Message</InputLabel>
+            <InputLabel>{t('devices.usp.rpc.message')}</InputLabel>
               <Select
                   value={currentMsg}
                   onChange={(event)=>{handleChangeMessage(event)}}
@@ -382,7 +384,7 @@ const fetchMessages = async () => {
             onClick={handleDeleteMessage}
             disabled={!message}
             >
-              Delete
+              {t('devices.usp.rpc.delete')}
             </Button>
             {!loadingSaveMsg ? <Button 
             variant="contained" 
@@ -390,7 +392,7 @@ const fetchMessages = async () => {
             onClick={saveMsg}
             disabled={!saveChanges}
             >
-              Save
+              {t('devices.usp.rpc.save')}
             </Button>: <CircularProgress />}
           </Stack>
           <Stack direction={"row"} spacing={1} width={"100%"} justifyContent={"flex-end"}>
@@ -399,7 +401,7 @@ const fetchMessages = async () => {
             endIcon={<SvgIcon><PaperAirplane /></SvgIcon>} 
             onClick={handleOpen}
             >
-              Send
+              {t('devices.usp.rpc.send')}
             </Button>
           </Stack>
         </CardActions>
@@ -420,7 +422,7 @@ const fetchMessages = async () => {
       >
         <DialogTitle id="scroll-dialog-title">
         <Box display="flex" alignItems="center">
-              <Box flexGrow={1} >Response</Box>
+              <Box flexGrow={1} >{t('devices.usp.rpc.response')}</Box>
               <Box>
                   <IconButton >
                         <SvgIcon 
@@ -452,7 +454,7 @@ const fetchMessages = async () => {
             setAnswer(false);
             handleClose;
             //setContent("");
-          }}>Ok</Button>
+          }}>{t('devices.usp.rpc.ok')}</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={newMessage} maxWidth={"800px"}>
@@ -475,24 +477,24 @@ const fetchMessages = async () => {
                   fullWidth
                   value={newMsgName}
                   onChange={(event)=>{setNewMsgName(event.target.value)}}
-                  label="Name"
+                  label={t('devices.usp.rpc.name')}
                   sx={{maxWidth: "30%", justifyContent:"center"}}
               />
                 <FormControl sx={{display:"flex", width: "30%"}} variant="standard" >
-                  <InputLabel>Template</InputLabel>
+                  <InputLabel>{t('devices.usp.rpc.template')}</InputLabel>
                   <Select
                       value={age}
                       label="Action"
                       name='action'
                       onChange={(event)=>{handleChangeRPC(event)}}
                   >
-                      <MenuItem value={1}>Set</MenuItem>
-                      <MenuItem value={2}>Delete</MenuItem>
-                      <MenuItem value={3}>Add</MenuItem>
-                      <MenuItem value={4}>Operate</MenuItem>
-                      <MenuItem value={5}>Get</MenuItem>
-                      <MenuItem value={6}>Get Supported DM</MenuItem>
-                      <MenuItem value={7}>Get Instances</MenuItem>
+                      <MenuItem value={1}>{t('devices.usp.rpc.set')}</MenuItem>
+                      <MenuItem value={2}>{t('devices.usp.rpc.delete')}</MenuItem>
+                      <MenuItem value={3}>{t('devices.usp.rpc.add')}</MenuItem>
+                      <MenuItem value={4}>{t('devices.usp.rpc.operate')}</MenuItem>
+                      <MenuItem value={5}>{t('devices.usp.rpc.get')}</MenuItem>
+                      <MenuItem value={6}>{t('devices.usp.rpc.getSupportedDm')}</MenuItem>
+                      <MenuItem value={7}>{t('devices.usp.rpc.getInstances')}</MenuItem>
                   </Select>
                 </FormControl>
             </Stack>
@@ -505,7 +507,7 @@ const fetchMessages = async () => {
                 id="outlined-multiline-static"
                 size="large"
                 multiline="true"
-                label="Payload"
+                label={t('devices.usp.rpc.payload')}
                 name="password"
                 onChange={handleNewMessageValue}
                 value={newMsgValue}
@@ -520,7 +522,7 @@ const fetchMessages = async () => {
             variant="contained" 
             onClick={handleCancelNewMsgTemplate}
             >
-              Cancel
+              {t('devices.usp.rpc.cancel')}
             </Button>
             {!loading ?
             <Button 
@@ -528,7 +530,7 @@ const fetchMessages = async () => {
             endIcon={<SvgIcon><CheckIcon /></SvgIcon>} 
             onClick={createNewMsg}
             >
-              Save
+              {t('devices.usp.rpc.save')}
             </Button>:<CircularProgress />}
           </Stack>
       </Dialog>

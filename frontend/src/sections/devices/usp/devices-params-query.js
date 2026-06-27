@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
@@ -37,6 +38,7 @@ export const DevicesParamQuery = () => {
   const router = useRouter();
   const { httpRequest } = useBackendContext();
   const deviceID = router.query.id?.[0];
+  const { t } = useTranslation();
 
   const [pathInput, setPathInput] = useState(DEFAULT_PATHS);
   const [maxDepth, setMaxDepth] = useState(0);
@@ -139,15 +141,15 @@ export const DevicesParamQuery = () => {
     <Card>
       <CardHeader
         avatar={<SvgIcon><MagnifyingGlassIcon /></SvgIcon>}
-        title="Parameter Query"
-        subheader="Enter TR-181 paths (one per line). Use cached endpoint to avoid round-trips; Refresh Live for guaranteed fresh data."
+        title={t('devices.usp.paramsQuery.title')}
+        subheader={t('devices.usp.paramsQuery.subheader')}
       />
       <Divider />
       <CardContent>
         <Stack spacing={2}>
           <Stack direction="row" spacing={2} alignItems="flex-start">
             <TextField
-              label="TR-181 Parameter Paths"
+              label={t('devices.usp.paramsQuery.pathsLabel')}
               multiline
               rows={5}
               fullWidth
@@ -158,7 +160,7 @@ export const DevicesParamQuery = () => {
             />
             <Stack spacing={1} minWidth={130}>
               <TextField
-                label="Max Depth"
+                label={t('devices.usp.paramsQuery.maxDepth')}
                 type="number"
                 size="small"
                 value={maxDepth}
@@ -172,7 +174,7 @@ export const DevicesParamQuery = () => {
                 disabled={loading}
                 fullWidth
               >
-                Query (Cached)
+                {t('devices.usp.paramsQuery.queryCached')}
               </Button>
               <Button
                 variant="outlined"
@@ -181,7 +183,7 @@ export const DevicesParamQuery = () => {
                 disabled={loading}
                 fullWidth
               >
-                Refresh Live
+                {t('devices.usp.paramsQuery.refreshLive')}
               </Button>
             </Stack>
           </Stack>
@@ -194,7 +196,7 @@ export const DevicesParamQuery = () => {
 
           {error && (
             <Box>
-              <Typography color="error" variant="body2" fontWeight="bold">Error:</Typography>
+              <Typography color="error" variant="body2" fontWeight="bold">{t('devices.usp.paramsQuery.error')}:</Typography>
               <pre style={{ fontSize: 12, color: '#c00', overflow: 'auto' }}>{error}</pre>
             </Box>
           )}
@@ -203,19 +205,19 @@ export const DevicesParamQuery = () => {
             <Box>
               <Stack direction="row" spacing={1} alignItems="center" mb={1}>
                 <Typography variant="subtitle2">
-                  {results.length} parameter{results.length !== 1 ? 's' : ''} retrieved
+                  {t('devices.usp.paramsQuery.retrievedCount', { count: results.length })}
                 </Typography>
                 {cacheHit && (
-                  <Chip label="From Cache (5 min TTL)" size="small" color="info" />
+                  <Chip label={t('devices.usp.paramsQuery.fromCache')} size="small" color="info" />
                 )}
               </Stack>
               <Box sx={{ overflowX: 'auto' }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell><strong>Parameter Path</strong></TableCell>
-                      <TableCell><strong>Value</strong></TableCell>
-                      <TableCell align="right"><strong>Action</strong></TableCell>
+                      <TableCell><strong>{t('devices.usp.paramsQuery.paramPath')}</strong></TableCell>
+                      <TableCell><strong>{t('devices.usp.paramsQuery.value')}</strong></TableCell>
+                      <TableCell align="right"><strong>{t('devices.usp.paramsQuery.action')}</strong></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -226,7 +228,7 @@ export const DevicesParamQuery = () => {
                           {value}
                         </TableCell>
                         <TableCell align="right">
-                          <Tooltip title="Set value">
+                          <Tooltip title={t('devices.usp.paramsQuery.setValue')}>
                             <IconButton
                               size="small"
                               onClick={() => setEditDialog({ open: true, path, value })}
@@ -241,7 +243,7 @@ export const DevicesParamQuery = () => {
                       <TableRow>
                         <TableCell colSpan={3} align="center">
                           <Typography variant="body2" color="text.secondary">
-                            No parameters returned for these paths.
+                            {t('devices.usp.paramsQuery.noParametersReturned')}
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -256,11 +258,11 @@ export const DevicesParamQuery = () => {
 
       {/* SET dialog */}
       <Dialog open={editDialog.open} maxWidth="sm" fullWidth>
-        <DialogTitle>Set Parameter</DialogTitle>
+        <DialogTitle>{t('devices.usp.paramsQuery.setParameter')}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} pt={1}>
             <TextField
-              label="Path"
+              label={t('devices.usp.paramsQuery.path')}
               value={editDialog.path}
               disabled
               fullWidth
@@ -268,7 +270,7 @@ export const DevicesParamQuery = () => {
               inputProps={{ style: { fontFamily: 'monospace' } }}
             />
             <TextField
-              label="New Value"
+              label={t('devices.usp.paramsQuery.newValue')}
               value={editDialog.value}
               onChange={(e) => setEditDialog((d) => ({ ...d, value: e.target.value }))}
               fullWidth
@@ -278,13 +280,13 @@ export const DevicesParamQuery = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditDialog({ open: false, path: '', value: '' })}>
-            Cancel
+            {t('devices.usp.paramsQuery.cancel')}
           </Button>
           {setLoading2 ? (
             <CircularProgress size={24} />
           ) : (
             <Button variant="contained" onClick={handleSet}>
-              Apply
+              {t('devices.usp.paramsQuery.apply')}
             </Button>
           )}
         </DialogActions>

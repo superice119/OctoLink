@@ -4,12 +4,14 @@ import Box from '@mui/material/Box';
 import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useTranslation } from 'react-i18next';
 
 const ColorModeContext = React.createContext({ toggleColorMode: () => {} });
 
 function MyApp() {
   const theme = useTheme();
   const colorMode = React.useContext(ColorModeContext);
+  const { t } = useTranslation();
   return (
     <Box
       sx={{
@@ -23,7 +25,7 @@ function MyApp() {
         p: 3,
       }}
     >
-      {theme.palette.mode} mode
+      {theme.palette.mode === 'dark' ? t('settings.colorTheme.darkMode') : t('settings.colorTheme.lightMode')}
       <IconButton 
       sx={{ ml: 1 }} 
       onClick={colorMode.toggleColorMode} 

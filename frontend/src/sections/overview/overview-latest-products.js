@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import ArrowRightIcon from '@heroicons/react/24/solid/ArrowRightIcon';
 import EllipsisVerticalIcon from '@heroicons/react/24/solid/EllipsisVerticalIcon';
 import {
@@ -19,10 +20,11 @@ import {
 
 export const OverviewLatestProducts = (props) => {
   const { products = [], sx } = props;
+  const { t } = useTranslation();
 
   return (
     <Card sx={sx}>
-      <CardHeader title="Latest Products" />
+      <CardHeader title={t('overview.latestProducts.title')} />
       <List>
         {products.map((product, index) => {
           const hasDivider = index < products.length - 1;
@@ -62,7 +64,7 @@ export const OverviewLatestProducts = (props) => {
               <ListItemText
                 primary={product.name}
                 primaryTypographyProps={{ variant: 'subtitle1' }}
-                secondary={`Updated ${ago} ago`}
+                secondary={t('overview.latestProducts.updatedAgo', { ago })}
                 secondaryTypographyProps={{ variant: 'body2' }}
               />
               <IconButton edge="end">
@@ -86,7 +88,7 @@ export const OverviewLatestProducts = (props) => {
           size="small"
           variant="text"
         >
-          View all
+          {t('overview.latestProducts.viewAll')}
         </Button>
       </CardActions>
     </Card>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
 import BuildingOffice2Icon from '@heroicons/react/24/solid/BuildingOffice2Icon';
@@ -31,6 +32,7 @@ import { useRouter } from 'next/router';
 const Page = () => {
   const auth = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ const Page = () => {
   useEffect(() => { fetchTenants(); }, []);
 
   const handleCreate = async () => {
-    if (!newTenant.name.trim()) { setError('Tenant name is required'); return; }
+    if (!newTenant.name.trim()) { setError(t('accessControl.tenants.tenantNameRequired')); return; }
     setError('');
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_REST_ENDPOINT || ''}/api/tenants`, {
@@ -73,18 +75,18 @@ const Page = () => {
         body: JSON.stringify(newTenant),
       });
       if (res.status === 401) return router.push('/auth/login');
-      if (res.status === 409) { setError('Tenant already exists'); return; }
-      if (!res.ok) { setError('Failed to create tenant'); return; }
+      if (res.status === 409) { setError(t('accessControl.tenants.tenantExists')); return; }
+      if (!res.ok) { setError(t('accessControl.tenants.failedToCreateTenant')); return; }
       setDialogOpen(false);
       setNewTenant({ name: '', description: '' });
       fetchTenants();
     } catch (e) {
-      setError('Network error');
+      setError(t('accessControl.tenants.networkError'));
     }
   };
 
   const handleDelete = async (id) => {
-    if (id === 'default') { setError('Cannot delete the default tenant'); return; }
+    if (id === 'default') { setError(t('accessControl.tenants.cannotDeleteDefaultTenant')); return; }
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_REST_ENDPOINT || ''}/api/tenants/${id}`, {
         method: 'DELETE',
@@ -99,18 +101,18 @@ const Page = () => {
 
   return (
     <>
-      <Head><title>OctoLink | Tenants</title></Head>
+      <Head><title>{t('accessControl.tenants.headTitle')}</title></Head>
       <Box component="main" sx={{ flexGrow: 1, py: 8 }}>
         <Container maxWidth="xl">
           <Stack spacing={3}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography variant="h4">Tenants</Typography>
+              <Typography variant="h4">{t('accessControl.tenants.pageTitle')}</Typography>
               <Button
                 startIcon={<SvgIcon fontSize="small"><PlusIcon /></SvgIcon>}
                 variant="contained"
                 onClick={() => { setDialogOpen(true); setError(''); }}
               >
-                Add Tenant
+                {t('accessControl.tenants.addTenant')}
               </Button>
             </Stack>
 
@@ -120,10 +122,10 @@ const Page = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="right">Actions</TableCell>
+                    <TableCell>{t('accessControl.tenants.id')}</TableCell>
+                    <TableCell>{t('accessControl.tenants.name')}</TableCell>
+                    <TableCell>{t('accessControl.tenants.description')}</TableCell>
+                    <TableCell align="right">{t('accessControl.tenants.actions')}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -162,13 +164,13 @@ const Page = () => {
       </Box>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Create Tenant</DialogTitle>
+        <DialogTitle>{t('accessControl.tenants.createTenant')}</DialogTitle>
         <DialogContent>
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <TextField
             autoFocus
             fullWidth
-            label="Name"
+            label={t('accessControl.tenants.name')}
             value={newTenant.name}
             onChange={(e) => setNewTenant({ ...newTenant, name: e.target.value })}
             margin="normal"
@@ -176,7 +178,7 @@ const Page = () => {
           />
           <TextField
             fullWidth
-            label="Description"
+            label={t('accessControl.tenants.description')}
             value={newTenant.description}
             onChange={(e) => setNewTenant({ ...newTenant, description: e.target.value })}
             margin="normal"
@@ -184,8 +186,8 @@ const Page = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setDialogOpen(false); setError(''); }}>Cancel</Button>
-          <Button variant="contained" onClick={handleCreate}>Create</Button>
+          <Button onClick={() => { setDialogOpen(false); setError(''); }}>{t('accessControl.tenants.cancel')}</Button>
+          <Button variant="contained" onClick={handleCreate}>{t('accessControl.tenants.create')}</Button>
         </DialogActions>
       </Dialog>
     </>

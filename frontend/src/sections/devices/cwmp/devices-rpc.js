@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
@@ -39,6 +40,7 @@ export const DevicesRPC = () => {
 
 const router = useRouter()
 let { httpRequest } = useBackendContext()
+const { t } = useTranslation()
 
 var prettifyXml = function(sourceXml)
 {
@@ -294,7 +296,7 @@ const fetchMessages = async () => {
       <Card>
         <CardHeader sx={{ justifyContent: 'flex-end'}} 
           avatar={<SvgIcon>< EnvelopeIcon/></SvgIcon>}
-          title="Custom Message" 
+          title={t('devices.cwmp.rpc.customMessage')}
           action={ 
           <Stack direction={"row"} spacing={1} width={"100%"} justifyContent={"flex-end"}>
             <Button sx={{ backgroundColor: "rgba(48, 109, 111, 0.04)" }}
@@ -302,7 +304,7 @@ const fetchMessages = async () => {
             onClick={()=>{setNewMessage(true)}}
             >
               <Stack direction={"row"} spacing={1}>
-                New Message
+                {t('devices.cwmp.rpc.newMessage')}
               </Stack>
             </Button>
           </Stack>}
@@ -312,7 +314,7 @@ const fetchMessages = async () => {
         <CardContent>
           <Stack pb={4} spacing={5} direction={"row"}>
             <FormControl sx={{display:"flex", width: "15%"}} variant="standard" >
-            <InputLabel>Message</InputLabel>
+            <InputLabel>{t('devices.cwmp.rpc.message')}</InputLabel>
               <Select
                   value={currentMsg}
                   onChange={(event)=>{handleChangeMessage(event)}}
@@ -350,7 +352,7 @@ const fetchMessages = async () => {
             onClick={handleDeleteMessage}
             disabled={!message}
             >
-              Delete
+              {t('devices.cwmp.rpc.delete')}
             </Button>
             {!loadingSaveMsg ? <Button 
             variant="contained" 
@@ -358,7 +360,7 @@ const fetchMessages = async () => {
             onClick={saveMsg}
             disabled={!saveChanges}
             >
-              Save
+              {t('devices.cwmp.rpc.save')}
             </Button>: <CircularProgress />}
           </Stack>
           <Stack direction={"row"} spacing={1} width={"100%"} justifyContent={"flex-end"}>
@@ -367,7 +369,7 @@ const fetchMessages = async () => {
             endIcon={<SvgIcon><PaperAirplane /></SvgIcon>} 
             onClick={handleOpen}
             >
-              Send
+              {t('devices.cwmp.rpc.send')}
             </Button>
           </Stack>
         </CardActions>
@@ -388,7 +390,7 @@ const fetchMessages = async () => {
       >
         <DialogTitle id="scroll-dialog-title">
         <Box display="flex" alignItems="center">
-              <Box flexGrow={1} >Response</Box>
+              <Box flexGrow={1} >{t('devices.cwmp.rpc.response')}</Box>
               <Box>
                   <IconButton >
                         <SvgIcon 
@@ -420,7 +422,7 @@ const fetchMessages = async () => {
             setAnswer(false);
             handleClose;
             //setContent("");
-          }}>Ok</Button>
+          }}>{t('devices.cwmp.rpc.ok')}</Button>
         </DialogActions>
       </Dialog>
       <Dialog open={newMessage} maxWidth={"800px"}>
@@ -443,24 +445,24 @@ const fetchMessages = async () => {
                   fullWidth
                   value={newMsgName}
                   onChange={(event)=>{setNewMsgName(event.target.value)}}
-                  label="Name"
+                  label={t('devices.cwmp.rpc.name')}
                   sx={{maxWidth: "30%", justifyContent:"center"}}
               />
                 <FormControl sx={{display:"flex", width: "30%"}} variant="standard" >
-                  <InputLabel>Template</InputLabel>
+                  <InputLabel>{t('devices.cwmp.rpc.template')}</InputLabel>
                   <Select
                       value={age}
                       label="Action"
                       name='action'
                       onChange={(event)=>{handleChangeRPC(event)}}
                   >
-                      <MenuItem value={1}>SetParameterValues</MenuItem>
-                      <MenuItem value={2}>DeleteObject</MenuItem>
-                      <MenuItem value={3}>AddObject</MenuItem>
-                      <MenuItem value={4}>Reboot</MenuItem>
-                      <MenuItem value={5}>GetParameterValues</MenuItem>
-                      <MenuItem value={6}>GetParameterNames</MenuItem>
-                      <MenuItem value={7}>GetParameterAttributes</MenuItem>
+                      <MenuItem value={1}>{t('devices.cwmp.rpc.setParameterValues')}</MenuItem>
+                      <MenuItem value={2}>{t('devices.cwmp.rpc.deleteObject')}</MenuItem>
+                      <MenuItem value={3}>{t('devices.cwmp.rpc.addObject')}</MenuItem>
+                      <MenuItem value={4}>{t('devices.cwmp.rpc.reboot')}</MenuItem>
+                      <MenuItem value={5}>{t('devices.cwmp.rpc.getParameterValues')}</MenuItem>
+                      <MenuItem value={6}>{t('devices.cwmp.rpc.getParameterNames')}</MenuItem>
+                      <MenuItem value={7}>{t('devices.cwmp.rpc.getParameterAttributes')}</MenuItem>
                   </Select>
                 </FormControl>
             </Stack>
@@ -473,7 +475,7 @@ const fetchMessages = async () => {
                 id="outlined-multiline-static"
                 size="large"
                 multiline="true"
-                label="Payload"
+                label={t('devices.cwmp.rpc.payload')}
                 name="password"
                 onChange={handleNewMessageValue}
                 value={newMsgValue}
@@ -488,7 +490,7 @@ const fetchMessages = async () => {
             variant="contained" 
             onClick={handleCancelNewMsgTemplate}
             >
-              Cancel
+              {t('devices.cwmp.rpc.cancel')}
             </Button>
             {!loading ?
             <Button 
@@ -496,7 +498,7 @@ const fetchMessages = async () => {
             endIcon={<SvgIcon><CheckIcon /></SvgIcon>} 
             onClick={createNewMsg}
             >
-              Save
+              {t('devices.cwmp.rpc.save')}
             </Button>:<CircularProgress />}
           </Stack>
       </Dialog>

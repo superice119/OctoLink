@@ -757,6 +757,8 @@ const Page = () => {
                           count={total}
                           rowsPerPage={rowsPerPage}
                           page={page-1}
+                          labelRowsPerPage={t('devices.page.rowsPerPage')}
+                          labelDisplayedRows={({ from, to, count }) => t('devices.page.displayedRows', { from, to, count })}
                           onPageChange={(e, newPage)=>{
                             setPage(newPage+1)
                             fetchDevicePerPage(newPage+1, statusOrder, filtersList, rowsPerPage)

@@ -97,7 +97,7 @@ const Page = () => {
                                         <div style={{marginTop:'10px'}}>
                                         </div>
                                             {status === "online" ?
-                                            <Tooltip title={t('chat.call')} 
+                                            <Tooltip title={t('chat.call')}
                                             placement="right" 
                                             onClick={()=>{
                                                 router.push({
@@ -115,7 +115,7 @@ const Page = () => {
                                             </Tooltip>
                                             :
                                             <Tooltip 
-                                            title={t('chat.offline')} 
+                                            title={t('chat.offline')}
                                             placement="right">
                                                 <SvgIcon
                                                 sx={{cursor:'default'}}

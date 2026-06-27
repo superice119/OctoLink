@@ -328,7 +328,7 @@ const fetchMessages = async () => {
       <Card>
         <CardHeader sx={{ justifyContent: 'flex-end'}} 
           avatar={<SvgIcon>< EnvelopeIcon/></SvgIcon>}
-          title={t('devices.usp.rpc.customMessage')} 
+          title={t('devices.usp.rpc.customMessage')}
           action={ 
           <Stack direction={"row"} spacing={1} width={"100%"} justifyContent={"flex-end"}>
             <Button sx={{ backgroundColor: "rgba(48, 109, 111, 0.04)" }}

@@ -152,7 +152,9 @@
       "apply": "应用",
       "remove": "移除",
       "action": "动作",
-      "speedDialLabel": "设备操作"
+      "speedDialLabel": "设备操作",
+      "rowsPerPage": "每页行数:",
+      "displayedRows": "第 {{from}}–{{to}} 条,共 {{count}} 条"
     },
     "detail": {
       "controllerTitle": "设备控制器",

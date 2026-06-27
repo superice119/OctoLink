@@ -152,7 +152,9 @@
       "apply": "Apply",
       "remove": "Remove",
       "action": "Action",
-      "speedDialLabel": "Device actions"
+      "speedDialLabel": "Device actions",
+      "rowsPerPage": "Rows per page:",
+      "displayedRows": "{{from}}–{{to}} of {{count}}"
     },
     "detail": {
       "controllerTitle": "Device Controller",

@@ -55,8 +55,19 @@ type Bridge struct {
 	Ws             config.Ws
 	NewDeviceQueue map[string]string
 	NewDevQMutex   *sync.Mutex
+	wsWriteMu      sync.Mutex
 	kv             jetstream.KeyValue
 	Ctx            context.Context
+}
+
+// wsWrite serializes all writes to the websocket connection. gorilla/websocket
+// does not allow concurrent writers, and the .info/.api NATS handlers run on
+// separate goroutines — concurrent WriteMessage calls corrupt the connection
+// (observed as abnormal close 1005), which previously killed the bridge.
+func (b *Bridge) wsWrite(wc *websocket.Conn, messageType int, data []byte) error {
+	b.wsWriteMu.Lock()
+	defer b.wsWriteMu.Unlock()
+	return wc.WriteMessage(messageType, data)
 }
 
 func NewBridge(p Publisher, s Subscriber, ctx context.Context, w config.Ws, kv jetstream.KeyValue) *Bridge {
@@ -87,12 +98,12 @@ func (b *Bridge) StartBridge(port string, tls bool) {
 				for {
 					msgType, wsMsg, err := wc.ReadMessage()
 					if err != nil {
-						if websocket.IsCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-							log.Printf("websocket error: %v", err)
-							b.StartBridge(port, tls)
-							return
-						}
-						log.Println("websocket unexpected error:", err)
+						// Any read error means this connection is gone (incl. close
+						// 1005 / no-status, which is NOT covered by IsCloseError).
+						// Always reconnect instead of silently letting the bridge die.
+						log.Printf("websocket read error, reconnecting: %v", err)
+						time.Sleep(WS_CONNECTION_RETRY)
+						b.StartBridge(port, tls)
 						return
 					}
 					if msgType == websocket.TextMessage {
@@ -149,7 +160,7 @@ func (b *Bridge) subscribe(wc *websocket.Conn) {
 		b.NewDeviceQueue[device] = ""
 		b.NewDevQMutex.Unlock()
 
-		err := wc.WriteMessage(websocket.BinaryMessage, msg.Data)
+		err := b.wsWrite(wc, websocket.BinaryMessage, msg.Data)
 		if err != nil {
 			log.Printf("send websocket msg error: %q", err)
 			return
@@ -160,7 +171,7 @@ func (b *Bridge) subscribe(wc *websocket.Conn) {
 
 		log.Printf("Received message on api subject")
 
-		err := wc.WriteMessage(websocket.BinaryMessage, msg.Data)
+		err := b.wsWrite(wc, websocket.BinaryMessage, msg.Data)
 		if err != nil {
 			log.Printf("send websocket msg error: %q", err)
 			return

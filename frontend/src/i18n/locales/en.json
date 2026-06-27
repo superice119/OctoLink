@@ -126,6 +126,7 @@
       "tableTitle": "Devices",
       "serialNumber": "Serial Number",
       "alias": "Alias",
+      "deviceAlias": "Device Alias",
       "labels": "Labels",
       "model": "Model",
       "vendor": "Vendor",
@@ -143,7 +144,9 @@
       "filter": "Filter",
       "type": "Type",
       "online": "Online",
+      "associating": "Associating",
       "offline": "Offline",
+      "unknown": "Unknown",
       "cancel": "Cancel",
       "save": "Save",
       "apply": "Apply",
@@ -252,7 +255,12 @@
         "template": "Template",
         "payload": "Payload",
         "getSupportedDm": "Get Supported DM",
-        "getInstances": "Get Instances"
+        "getInstances": "Get Instances",
+        "set": "Set",
+        "add": "Add",
+        "operate": "Operate",
+        "get": "Get",
+        "save": "Save"
       }
     },
     "cwmp": {
@@ -315,7 +323,8 @@
         "mode": "Mode",
         "response": "Response",
         "ok": "OK",
-        "applyPending": "This change could not be applied, or it will be applied later."
+        "applyPending": "This change could not be applied, or it will be applied later.",
+        "standard": "Standard"
       }
     }
   },

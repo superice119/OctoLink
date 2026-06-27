@@ -126,6 +126,7 @@
       "tableTitle": "设备",
       "serialNumber": "序列号",
       "alias": "别名",
+      "deviceAlias": "设备别名",
       "labels": "标签",
       "model": "型号",
       "vendor": "厂商",
@@ -143,7 +144,9 @@
       "filter": "筛选",
       "type": "类型",
       "online": "在线",
+      "associating": "关联中",
       "offline": "离线",
+      "unknown": "未知",
       "cancel": "取消",
       "save": "保存",
       "apply": "应用",
@@ -252,7 +255,12 @@
         "template": "模板",
         "payload": "负载",
         "getSupportedDm": "获取支持的数据模型",
-        "getInstances": "获取实例"
+        "getInstances": "获取实例",
+        "set": "设置",
+        "add": "添加",
+        "operate": "执行",
+        "get": "获取",
+        "save": "保存"
       }
     },
     "cwmp": {
@@ -315,7 +323,8 @@
         "mode": "模式",
         "response": "响应",
         "ok": "确定",
-        "applyPending": "该变更暂未生效，或将稍后应用。"
+        "applyPending": "该变更暂未生效，或将稍后应用。",
+        "standard": "标准"
       }
     }
   },

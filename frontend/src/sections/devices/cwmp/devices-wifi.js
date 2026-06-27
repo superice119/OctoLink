@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Button,
     Card,
@@ -39,6 +40,7 @@ export const DevicesWiFi = () => {
 
     const theme = useTheme();
     const router = useRouter()
+    const { t } = useTranslation()
 
     const [content, setContent] = useState([])
     const [applyContent, setApplyContent] = useState([])
@@ -117,7 +119,7 @@ export const DevicesWiFi = () => {
                                                 setApplyContent([...applyContent])
                                                 item.enable.value = enable
                                             }} />}
-                                            label="Enabled" />}
+                                            label={t('devices.cwmp.wifi.enabled')} />}
                                     {item.ssid.value != null && <TextField
                                         fullWidth
                                         label="SSID"
@@ -135,14 +137,14 @@ export const DevicesWiFi = () => {
                                     {item.securityCapabilities &&
                                         <TextField
                                             fullWidth
-                                            label="Encryption"
+                                            label={t('devices.cwmp.wifi.encryption')}
                                             value={""}
                                         />}
                                     {item.password.value != null &&
                                         <TextField
                                             fullWidth
                                             type="password"
-                                            label="Password"
+                                            label={t('devices.cwmp.wifi.password')}
                                             disabled={!item.password.writable}
                                             value={item.password.value}
                                             onChange={(e) => {
@@ -161,7 +163,7 @@ export const DevicesWiFi = () => {
                                         />}
                                     {item.channel?.value != null && item.possibleChannels?.value != null &&
                                         <FormControl variant='filled'>
-                                            <InputLabel id="channel">Channel</InputLabel>
+                                            <InputLabel id="channel">{t('devices.cwmp.wifi.channel')}</InputLabel>
                                             <Select
                                                 fullWidth
                                                 defaultValue={item.channel.value}
@@ -174,7 +176,7 @@ export const DevicesWiFi = () => {
                                                     setApplyContent([...applyContent])
                                                     item.channel.value = e.target.value
                                                 }}
-                                                label="Channel"
+                                                label={t('devices.cwmp.wifi.channel')}
                                             >
                                                 {item.possibleChannels.value.map((channel, index) => {
                                                     return (
@@ -186,7 +188,7 @@ export const DevicesWiFi = () => {
                                     {item.standard.value != null &&
                                         <TextField
                                             fullWidth
-                                            label="Standard"
+                                            label={t('devices.cwmp.wifi.standard')}
                                             disabled={!item.standard.writable}
                                             value={item.standard.value}
                                             onChange={(e) => {
@@ -237,7 +239,7 @@ export const DevicesWiFi = () => {
                                                         }
                                                         setApply(false)
                                                         if (result == 1) {
-                                                            setErrorModalText("This change could not be applied, or It's gonna be applied later on")
+                                                            setErrorModalText(t('devices.cwmp.wifi.applyPending'))
                                                             setErrorModal(true)
                                                             //TODO: fetch wifi data again
                                                         }
@@ -247,7 +249,7 @@ export const DevicesWiFi = () => {
                                         }
                                         sx={{ mt: '25px', mb: '-15px' }}
                                     >
-                                        Apply
+                                        {t('devices.cwmp.wifi.apply')}
                                     </Button>
                                 </CardActions>
                             </CardContent>
@@ -273,7 +275,7 @@ export const DevicesWiFi = () => {
         >
             <DialogTitle id="scroll-dialog-title">
                 <Box display="flex" alignItems="center">
-                    <Box flexGrow={1} >Response</Box>
+                    <Box flexGrow={1} >{t('devices.cwmp.wifi.response')}</Box>
                     <Box>
                         <IconButton onClick={() => {
                             setErrorModalText("")
@@ -298,7 +300,7 @@ export const DevicesWiFi = () => {
                 <Button onClick={() => {
                     setErrorModalText("")
                     setErrorModal(false)
-                }}>OK</Button>
+                }}>{t('devices.cwmp.wifi.ok')}</Button>
             </DialogActions>
         </Dialog>
     </div>

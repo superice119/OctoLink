@@ -166,13 +166,13 @@ const Page = () => {
 
   const status = (s) => {
     if (s == 0) {
-      return "Offline"
+      return t('devices.page.offline')
     } else if (s == 1) {
-      return "Associating"
+      return t('devices.page.associating')
     } else if (s == 2) {
-      return "Online"
+      return t('devices.page.online')
     } else {
-      return "Unknown"
+      return t('devices.page.unknown')
     }
   }
 
@@ -202,8 +202,8 @@ const Page = () => {
     } },*/
     //{ icon: <SvgIcon><TagIcon /></SvgIcon>, name: 'Label' },
     //{ icon: <SvgIcon><ShareIcon /></SvgIcon>, name: 'Share' },
-    { icon: <SvgIcon><TrashIcon /></SvgIcon>, name: 'Remove' },
-    { icon: <SvgIcon><CommandLineIcon /></SvgIcon>, name: 'Action' },
+    { icon: <SvgIcon><TrashIcon /></SvgIcon>, name: t('devices.page.remove') },
+    { icon: <SvgIcon><CommandLineIcon /></SvgIcon>, name: t('devices.page.action') },
   ];
 
   useEffect(() => {
@@ -475,7 +475,7 @@ const Page = () => {
                     xs={4}
                     defaultValue=""
                     fullWidth
-                    placeholder="Search Device"
+                    placeholder={t('devices.page.searchPlaceholder')}
                     onKeyDownCapture={(e) => {
                       if (e.key === 'Enter') {
                         console.log("Fetch devices per id: ", e.target.value)
@@ -543,19 +543,19 @@ const Page = () => {
                   horizontal: "center"
                 }}
               >
-                <MenuItem dense onClick={() => changeColumn("sn")}><Checkbox checked={columns["sn"]} /*onChange={()=>changeColumn("sn")}*/ /><ListItemText primary="Serial Number" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("alias")}><Checkbox checked={columns["alias"]} /*onChange={()=>changeColumn("alias")}*/ /><ListItemText primary="Alias" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("model")}><Checkbox checked={columns["model"]} /*onChange={() => changeColumn("model")}*/ /><ListItemText primary="Model" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("vendor")}><Checkbox checked={columns["vendor"]} /*onChange={() => changeColumn("vendor")}*/ /><ListItemText primary="Vendor" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("version")}><Checkbox checked={columns["version"]} /*onChange={() => changeColumn("version")}*/ /><ListItemText primary="Version" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("status")}><Checkbox checked={columns["status"]} /*onChange={() => changeColumn("status")}*/ /><ListItemText primary="Status" /></MenuItem>
-                <MenuItem dense onClick={() => changeColumn("actions")}><Checkbox checked={columns["actions"]} /*onChange={() => changeColumn("actions")}*/ /><ListItemText primary="Actions" /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("sn")}><Checkbox checked={columns["sn"]} /*onChange={()=>changeColumn("sn")}*/ /><ListItemText primary={t('devices.page.serialNumber')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("alias")}><Checkbox checked={columns["alias"]} /*onChange={()=>changeColumn("alias")}*/ /><ListItemText primary={t('devices.page.alias')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("model")}><Checkbox checked={columns["model"]} /*onChange={() => changeColumn("model")}*/ /><ListItemText primary={t('devices.page.model')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("vendor")}><Checkbox checked={columns["vendor"]} /*onChange={() => changeColumn("vendor")}*/ /><ListItemText primary={t('devices.page.vendor')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("version")}><Checkbox checked={columns["version"]} /*onChange={() => changeColumn("version")}*/ /><ListItemText primary={t('devices.page.version')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("status")}><Checkbox checked={columns["status"]} /*onChange={() => changeColumn("status")}*/ /><ListItemText primary={t('devices.page.status')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("actions")}><Checkbox checked={columns["actions"]} /*onChange={() => changeColumn("actions")}*/ /><ListItemText primary={t('devices.page.actions')} /></MenuItem>
                 {/* <MenuItem dense onClick={() => changeColumn("label")}><Checkbox checked={columns["label"]} /><ListItemText primary="Labels" /></MenuItem> */}
               </Menu>
             </div>
                 <div>
                   <Card sx={{ height: "100%" }}>
-                    <CardHeader title="Devices" />
+                    <CardHeader title={t('devices.page.tableTitle')} />
                     <Scrollbar sx={{ flexGrow: 1 }}>
                       <Box sx={{ minWidth: 800 }}>
                         <TableContainer sx={{ maxHeight: 600 }}>
@@ -575,29 +575,29 @@ const Page = () => {
                                   />
                                 </TableCell> */}
                                 {columns["sn"] && <TableCell align="center">
-                                  Serial Number
+                                  {t('devices.page.serialNumber')}
                                 </TableCell>}
                                 {columns["alias"] && <TableCell>
-                                  Alias
+                                  {t('devices.page.alias')}
                                 </TableCell>}
                                 {
                                   columns["label"] && <TableCell >
-                                    Labels
+                                    {t('devices.page.labels')}
                                   </TableCell>
                                 }
                                 {columns["model"] && <TableCell>
-                                  Model
+                                  {t('devices.page.model')}
                                 </TableCell>}
                                 {columns["vendor"] && <TableCell>
-                                  Vendor
+                                  {t('devices.page.vendor')}
                                 </TableCell>}
                                 {columns["version"] && <TableCell>
-                                  Version
+                                  {t('devices.page.version')}
                                 </TableCell>}
                                 {columns["status"] &&
                                   <TableCell>
                                     {/*//TODO: create function to fetch devices by status order*/}
-                                    <Tooltip title="Change status display order" placement="top">
+                                    <Tooltip title={t('devices.page.changeStatusOrder')} placement="top">
                                       <span style={{ cursor: "pointer" }} onClick={() => {
                                         if (statusOrder == "asc") {
                                           setStatusOrder("desc")
@@ -606,7 +606,7 @@ const Page = () => {
                                           setStatusOrder("asc")
                                           fetchDevicePerPage(page, "asc")
                                         }
-                                      }}>Status ↑↓</span>
+                                      }}>{t('devices.page.status')} ↑↓</span>
                                     </Tooltip>
                                     {/* <Box >
                                     <Tooltip title="Change status display order" placement="top">
@@ -620,7 +620,7 @@ const Page = () => {
                                   </Box> */}
                                   </TableCell>}
                                 {columns["actions"] && <TableCell align="center">
-                                  Actions
+                                  {t('devices.page.actions')}
                                 </TableCell>}
                               </TableRow>
                             </TableHead>
@@ -675,7 +675,7 @@ const Page = () => {
                                     </TableCell>}
                                     {columns["actions"] && <TableCell align="center">
                                       {order.Status == 2 &&
-                                        <Tooltip title="Access the device">
+                                        <Tooltip title={t('devices.page.accessDevice')}>
                                           <Button
                                             onClick={() => {
                                               router.push("devices/" + getDeviceProtocol(order) + "/" + order.SN)
@@ -689,7 +689,7 @@ const Page = () => {
                                             </SvgIcon>
                                           </Button>
                                         </Tooltip>}
-                                      <Tooltip title="Edit the device alias">
+                                      <Tooltip title={t('devices.page.editAlias')}>
                                     <Button
                                       onClick={()=>{
                                         setDeviceToBeChanged(index)
@@ -705,7 +705,7 @@ const Page = () => {
                                       </SvgIcon>
                                     </Button>
                                   </Tooltip>
-                                  <Tooltip title="Delete device">
+                                  <Tooltip title={t('devices.page.deleteDevice')}>
                                     <Button
                                       onClick={()=>{
                                         setDeviceToBeRemoved(index)
@@ -743,7 +743,7 @@ const Page = () => {
                                 <TableRow>
                                   <TableCell colSpan={7} align="center">
                                     {
-                                      deviceFound ? <CircularProgress/> : "No device found"
+                                      deviceFound ? <CircularProgress/> : t('devices.page.noDeviceFound')
                                     }
                                   </TableCell>
                                 </TableRow>
@@ -773,7 +773,7 @@ const Page = () => {
                   {showSetDeviceAlias &&
                     <Dialog open={showSetDeviceAlias}>
                       <DialogContent>
-                        <InputLabel>Device Alias</InputLabel>
+                        <InputLabel>{t('devices.page.deviceAlias')}</InputLabel>
                         <Input value={deviceAlias} onChange={(e) => { setDeviceAlias(e.target.value) }}
                           onKeyUp={e => {
                             if (e.key === 'Enter') {
@@ -787,20 +787,20 @@ const Page = () => {
                           setShowSetDeviceAlias(false)
                           setDeviceAlias(null)
                           setDeviceToBeChanged(null)
-                        }}>Cancel</Button>
+                        }}>{t('devices.page.cancel')}</Button>
                         <Button onClick={() => {
                           setNewDeviceAlias(deviceAlias, devices[deviceToBeChanged].SN)
-                        }}>Save</Button>
+                        }}>{t('devices.page.save')}</Button>
                       </DialogActions>
                     </Dialog>}
                     {showSetDeviceToBeRemoved &&
                     <Dialog open={showSetDeviceToBeRemoved}>
                       <DialogContent>
                         {devices[deviceToBeRemoved]?.SN
-                          ? <DialogContentText>Are you sure you want to remove <b>{devices[deviceToBeRemoved].SN}</b> device?</DialogContentText>
+                          ? <DialogContentText>{t('devices.page.removeDeviceConfirm', { sn: devices[deviceToBeRemoved].SN })}</DialogContentText>
                           : <DialogContentText>
-                              This device has no serial number (ghost entry). Only super_admin can clean it up.
-                              {auth.user?.role !== 'super_admin' && <><br/><b>Contact your super_admin to remove ghost devices.</b></>}
+                              {t('devices.page.removeGhostConfirm')}
+                              {auth.user?.role !== 'super_admin' && <><br/><b>{t('devices.page.removeGhostContact')}</b></>}
                             </DialogContentText>
                         }
                       </DialogContent>
@@ -808,13 +808,13 @@ const Page = () => {
                         <Button onClick={() => {
                           setShowSetDeviceToBeRemoved(false)
                           setDeviceToBeRemoved(null)
-                        }}>Cancel</Button>
+                        }}>{t('devices.page.cancel')}</Button>
                         <Button
                           disabled={!devices[deviceToBeRemoved]?.SN && auth.user?.role !== 'super_admin'}
                           endIcon={<SvgIcon><TrashIcon /></SvgIcon>}
                           onClick={() => {
                           removeDevice(devices[deviceToBeRemoved].SN)
-                        }}>Apply</Button>
+                        }}>{t('devices.page.apply')}</Button>
                       </DialogActions>
                     </Dialog>}
                 </div>
@@ -867,7 +867,7 @@ const Page = () => {
           <SvgIcon style={{ marginRight: "10px", marginBottom: "-5px" }}>
             <FunnelIcon />
           </SvgIcon>
-          Filter
+          {t('devices.page.filter')}
         </DialogTitle>
         {filterOptions && <DialogContent>
           <Stack spacing={2} marginTop={1} minWidth={400}>
@@ -875,12 +875,12 @@ const Page = () => {
               spacing={2}
               direction={'row'}
             >
-              <TextField label="Alias" variant="filled" sx={{minWidth:"48%"}}
+              <TextField label={t('devices.page.alias')} variant="filled" sx={{minWidth:"48%"}}
                 value={newFiltersList["alias"]}
                 onChange={(e) => setNewFiltersList({ ...newFiltersList, "alias": e.target.value })}
               />
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Type</InputLabel>
+                <InputLabel>{t('devices.page.type')}</InputLabel>
                 <Select
                   value={newFiltersList["type"]}
                   onChange={(e) => setNewFiltersList({ ...newFiltersList, "type": e.target.value })}
@@ -900,7 +900,7 @@ const Page = () => {
               direction={'row'}
             >
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Vendor</InputLabel>
+                <InputLabel>{t('devices.page.vendor')}</InputLabel>
                 <Select
                   value={newFiltersList["vendor"]}
                   onChange={(e) => setNewFiltersList({ ...newFiltersList, "vendor": e.target.value })}
@@ -914,7 +914,7 @@ const Page = () => {
                 </Select>
               </FormControl>
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Version</InputLabel>
+                <InputLabel>{t('devices.page.version')}</InputLabel>
                 <Select
                   value={newFiltersList["version"]}
                   onChange={(e) => setNewFiltersList({ ...newFiltersList, "version": e.target.value })}
@@ -933,7 +933,7 @@ const Page = () => {
               direction={'row'}
             >
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Status</InputLabel>
+                <InputLabel>{t('devices.page.status')}</InputLabel>
                 <Select
                   value={
                     newFiltersList["status"]
@@ -960,8 +960,8 @@ const Page = () => {
                   }}
                   fullWidth
                 >
-                  <MenuItem value={"2"}>Online</MenuItem>
-                  <MenuItem value={"0"}>Offline</MenuItem>
+                  <MenuItem value={"2"}>{t('devices.page.online')}</MenuItem>
+                  <MenuItem value={"0"}>{t('devices.page.offline')}</MenuItem>
                 </Select>
               </FormControl>
               {/* <FormControl variant="filled" sx={{ minWidth: "48%" }}>
@@ -979,7 +979,7 @@ const Page = () => {
                   </Select>
               </FormControl> */}
               <FormControl variant="filled" sx={{ minWidth: "48%" }}>
-                <InputLabel>Model</InputLabel>
+                <InputLabel>{t('devices.page.model')}</InputLabel>
                 <Select
                   value={newFiltersList["model"]}
                   onChange={(e) => setNewFiltersList({ ...newFiltersList, "model": e.target.value })}
@@ -1028,13 +1028,13 @@ const Page = () => {
             } */
 
             //setFiltersList(defaultFiltersList)
-          }}>Cancel</Button>
+          }}>{t('devices.page.cancel')}</Button>
           <Button onClick={() => { 
             setFiltersList(newFiltersList)
             setShowFilter(false)
             console.log("filters list:", filtersList)
             fetchDevicePerPage(1, statusOrder, newFiltersList)
-          }}>Apply</Button>
+          }}>{t('devices.page.apply')}</Button>
         </DialogActions>
       </Dialog>
     </>

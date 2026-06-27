@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 import { subDays, subHours } from 'date-fns';
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
@@ -23,6 +24,7 @@ const Page = () => {
 
   const auth = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const validateEmail = (email) => {
     return email.match(
@@ -214,7 +216,7 @@ const Page = () => {
     <>
       <Head>
         <title>
-          OctoLink | Users
+          {t('accessControl.users.headTitle')}
         </title>
       </Head>
       <Box
@@ -233,7 +235,7 @@ const Page = () => {
             >
               <Stack spacing={1}>
                 <Typography variant="h4">
-                  Users
+                  {t('accessControl.users.pageTitle')}
                 </Typography>
                 <Stack
                   alignItems="center"
@@ -274,7 +276,7 @@ const Page = () => {
                     setAddDeviceDialogOpen(true)
                   }}
                 >
-                  Add
+                  {t('accessControl.users.add')}
                 </Button>
               </div>
             </Stack>
@@ -310,7 +312,7 @@ const Page = () => {
         setNewUserData({})
       }}
       >
-        <DialogTitle>Create User</DialogTitle>
+        <DialogTitle>{t('accessControl.users.createUser')}</DialogTitle>
         <DialogContent>
           <Stack
             alignItems="center"
@@ -325,13 +327,13 @@ const Page = () => {
               }}
               // focused={isEmailEmpty}
               // color={isEmailEmpty ? "error" : "primary"}
-              helperText={isEmailEmpty ? "Email error" : (isEmailExistent ? "Email already exists" : "")}
+              helperText={isEmailEmpty ? t('accessControl.users.emailError') : (isEmailExistent ? t('accessControl.users.emailExists') : "")}
               autoFocus
               required
               margin="dense"
               id="email"
               name="email"
-              label="Email Address"
+              label={t('accessControl.users.emailAddress')}
               type="email"
               fullWidth
               onChange={
@@ -344,13 +346,13 @@ const Page = () => {
             <TextField 
               // focused={isPasswordEmpty}
               //color={isPasswordEmpty ? "error" : "primary"}
-              helperText={isPasswordEmpty ? "Password cannot be empty" : ""}
+              helperText={isPasswordEmpty ? t('accessControl.users.passwordEmpty') : ""}
               autoFocus
               required
               margin="dense"
               id="password"
               name="password"
-              label="Password"
+              label={t('accessControl.users.password')}
               type="password"
               autoComplete='new-password'
               fullWidth
@@ -377,7 +379,7 @@ const Page = () => {
               margin="dense"
               id="name"
               name="name"
-              label="Full Name"
+              label={t('accessControl.users.fullName')}
               type="name"
               fullWidth
               variant="standard"
@@ -399,7 +401,7 @@ const Page = () => {
               margin="dense"
               id="phone"
               name="phone"
-              label="Phone Number"
+              label={t('accessControl.users.phoneNumber')}
               type="phone"
               fullWidth
               variant="standard"
@@ -421,7 +423,7 @@ const Page = () => {
               setIsPasswordEmpty(false)
               setNewUserData({})
             }
-          }>Cancel</Button>
+          }>{t('accessControl.users.cancel')}</Button>
           <Button onClick={()=>{
             // console.log("new user data: ", newUserData) // Removed to prevent logging sensitive information
             if (newUserData.password === undefined || newUserData.password === "") {
@@ -442,7 +444,7 @@ const Page = () => {
             setIsEmailExistent(false)
             setCreatingNewUser(true)
             createUser(newUserData)
-          }}>Confirm</Button>
+          }}>          {t('accessControl.users.confirm')}</Button>
         </DialogActions>
         {
         <Backdrop

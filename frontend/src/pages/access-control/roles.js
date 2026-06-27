@@ -1,5 +1,6 @@
 import { useCallback, useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
 import ShieldCheckIcon from '@heroicons/react/24/solid/ShieldCheckIcon';
@@ -47,6 +48,7 @@ const SYSTEM_ROLES = ['super_admin', 'tenant_admin', 'operator', 'viewer'];
 const Page = () => {
   const auth = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ const Page = () => {
   };
 
   const handleCreate = async () => {
-    if (!newRoleName.trim()) { setError('Role name is required'); return; }
+    if (!newRoleName.trim()) { setError(t('accessControl.roles.roleNameRequired')); return; }
     setError('');
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_REST_ENDPOINT || ''}/api/roles`, {
@@ -93,15 +95,15 @@ const Page = () => {
         body: JSON.stringify({ name: newRoleName.trim(), permissions: newRolePerms }),
       });
       if (res.status === 401) return router.push('/auth/login');
-      if (res.status === 403) { setError('Insufficient permissions'); return; }
-      if (res.status === 409) { setError('Role name already exists'); return; }
-      if (!res.ok) { setError('Failed to create role'); return; }
+      if (res.status === 403) { setError(t('accessControl.roles.insufficientPermissions')); return; }
+      if (res.status === 409) { setError(t('accessControl.roles.roleNameExists')); return; }
+      if (!res.ok) { setError(t('accessControl.roles.failedToCreateRole')); return; }
       setDialogOpen(false);
       setNewRoleName('');
       setNewRolePerms([]);
       fetchRoles();
     } catch (e) {
-      setError('Network error');
+      setError(t('accessControl.roles.networkError'));
     }
   };
 
@@ -121,19 +123,19 @@ const Page = () => {
 
   return (
     <>
-      <Head><title>OctoLink | Roles</title></Head>
+      <Head><title>{t('accessControl.roles.headTitle')}</title></Head>
       <Box component="main" sx={{ flexGrow: 1, py: 8 }}>
         <Container maxWidth="xl">
           <Stack spacing={3}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography variant="h4">Roles</Typography>
+              <Typography variant="h4">{t('accessControl.roles.pageTitle')}</Typography>
               {canManage && (
                 <Button
                   startIcon={<SvgIcon fontSize="small"><PlusIcon /></SvgIcon>}
                   variant="contained"
                   onClick={() => { setDialogOpen(true); setError(''); }}
                 >
-                  Add Custom Role
+                  {t('accessControl.roles.addCustomRole')}
                 </Button>
               )}
             </Stack>
@@ -142,10 +144,10 @@ const Page = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Permissions</TableCell>
-                    {canManage && <TableCell align="right">Actions</TableCell>}
+                    <TableCell>{t('accessControl.roles.name')}</TableCell>
+                    <TableCell>{t('accessControl.roles.type')}</TableCell>
+                    <TableCell>{t('accessControl.roles.permissions')}</TableCell>
+                    {canManage && <TableCell align="right">{t('accessControl.roles.actions')}</TableCell>}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -161,7 +163,7 @@ const Page = () => {
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={role.is_system ? 'System' : 'Custom'}
+                          label={role.is_system ? t('accessControl.roles.system') : t('accessControl.roles.custom')}
                           color={role.is_system ? 'default' : 'primary'}
                           size="small"
                         />
@@ -196,19 +198,19 @@ const Page = () => {
       </Box>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Create Custom Role</DialogTitle>
+        <DialogTitle>{t('accessControl.roles.createCustomRole')}</DialogTitle>
         <DialogContent>
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <TextField
             autoFocus
             fullWidth
-            label="Role Name"
+            label={t('accessControl.roles.roleName')}
             value={newRoleName}
             onChange={(e) => setNewRoleName(e.target.value)}
             margin="normal"
             variant="standard"
           />
-          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>Permissions</Typography>
+          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>{t('accessControl.roles.permissions')}</Typography>
           <FormControl component="fieldset">
             <FormGroup>
               {ALL_PERMISSIONS.map((perm) => (
@@ -227,8 +229,8 @@ const Page = () => {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setDialogOpen(false); setError(''); }}>Cancel</Button>
-          <Button variant="contained" onClick={handleCreate}>Create</Button>
+          <Button onClick={() => { setDialogOpen(false); setError(''); }}>{t('accessControl.roles.cancel')}</Button>
+          <Button variant="contained" onClick={handleCreate}>{t('accessControl.roles.create')}</Button>
         </DialogActions>
       </Dialog>
     </>

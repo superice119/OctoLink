@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import { useTranslation } from 'react-i18next';
 import ArrowUpOnSquareIcon from '@heroicons/react/24/solid/ArrowUpOnSquareIcon';
 import ArrowDownOnSquareIcon from '@heroicons/react/24/solid/ArrowDownOnSquareIcon';
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
@@ -67,11 +68,14 @@ const companies = [
   }
 ];
 
-const Page = () => (
+const Page = () => {
+  const { t } = useTranslation();
+
+  return (
   <>
     <Head>
       <title>
-        Companies | Devias Kit
+        {t('companies.headTitle')}
       </title>
     </Head>
     <Box
@@ -90,7 +94,7 @@ const Page = () => (
           >
             <Stack spacing={1}>
               <Typography variant="h4">
-                Companies
+                {t('companies.pageTitle')}
               </Typography>
               <Stack
                 alignItems="center"
@@ -105,7 +109,7 @@ const Page = () => (
                     </SvgIcon>
                   )}
                 >
-                  Import
+                  {t('companies.actions.import')}
                 </Button>
                 <Button
                   color="inherit"
@@ -115,7 +119,7 @@ const Page = () => (
                     </SvgIcon>
                   )}
                 >
-                  Export
+                  {t('companies.actions.export')}
                 </Button>
               </Stack>
             </Stack>
@@ -128,7 +132,7 @@ const Page = () => (
                 )}
                 variant="contained"
               >
-                Add
+                {t('companies.actions.add')}
               </Button>
             </div>
           </Stack>
@@ -163,7 +167,8 @@ const Page = () => (
       </Container>
     </Box>
   </>
-);
+  );
+};
 
 Page.getLayout = (page) => (
   <DashboardLayout>

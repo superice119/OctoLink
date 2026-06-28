@@ -113,6 +113,7 @@ const Page = () => {
     alias: true,
     model: true,
     vendor: true,
+    access: true,
     status: true,
     actions: true,
     label: false
@@ -121,12 +122,13 @@ const Page = () => {
   const [showSpeedDial, setShowSpeedDial] = useState(false);
 
   const getColumns = () => {
-    localStorage.getItem("columns") ? setColumns(JSON.parse(localStorage.getItem("columns"))) : setColumns({
+    localStorage.getItem("columns") ? setColumns({ access: true, ...JSON.parse(localStorage.getItem("columns")) }) : setColumns({
       version: true,
       sn: true,
       alias: false,
       model: true,
       vendor: true,
+      access: true,
       status: true,
       actions: true,
       label: false
@@ -174,6 +176,18 @@ const Page = () => {
     } else {
       return t('devices.page.unknown')
     }
+  }
+
+  // Access method (MTP) the agent is connected through. The controller exposes a
+  // per-MTP status on each device (0 offline / 1 associating / 2 online); show the
+  // protocol name(s) that are not offline. Protocol names are not translated.
+  const accessMethod = (order) => {
+    const mtps = []
+    if (order.Mqtt >= 1) mtps.push("MQTT")
+    if (order.Websockets >= 1) mtps.push("WebSocket")
+    if (order.Stomp >= 1) mtps.push("STOMP")
+    if (order.Cwmp >= 1) mtps.push("CWMP")
+    return mtps.length ? mtps.join(", ") : "—"
   }
 
   const getDeviceProtocol = (order) => {
@@ -548,6 +562,7 @@ const Page = () => {
                 <MenuItem dense onClick={() => changeColumn("model")}><Checkbox checked={columns["model"]} /*onChange={() => changeColumn("model")}*/ /><ListItemText primary={t('devices.page.model')} /></MenuItem>
                 <MenuItem dense onClick={() => changeColumn("vendor")}><Checkbox checked={columns["vendor"]} /*onChange={() => changeColumn("vendor")}*/ /><ListItemText primary={t('devices.page.vendor')} /></MenuItem>
                 <MenuItem dense onClick={() => changeColumn("version")}><Checkbox checked={columns["version"]} /*onChange={() => changeColumn("version")}*/ /><ListItemText primary={t('devices.page.version')} /></MenuItem>
+                <MenuItem dense onClick={() => changeColumn("access")}><Checkbox checked={columns["access"]} /><ListItemText primary={t('devices.page.access')} /></MenuItem>
                 <MenuItem dense onClick={() => changeColumn("status")}><Checkbox checked={columns["status"]} /*onChange={() => changeColumn("status")}*/ /><ListItemText primary={t('devices.page.status')} /></MenuItem>
                 <MenuItem dense onClick={() => changeColumn("actions")}><Checkbox checked={columns["actions"]} /*onChange={() => changeColumn("actions")}*/ /><ListItemText primary={t('devices.page.actions')} /></MenuItem>
                 {/* <MenuItem dense onClick={() => changeColumn("label")}><Checkbox checked={columns["label"]} /><ListItemText primary="Labels" /></MenuItem> */}
@@ -593,6 +608,9 @@ const Page = () => {
                                 </TableCell>}
                                 {columns["version"] && <TableCell>
                                   {t('devices.page.version')}
+                                </TableCell>}
+                                {columns["access"] && <TableCell>
+                                  {t('devices.page.access')}
                                 </TableCell>}
                                 {columns["status"] &&
                                   <TableCell>
@@ -666,6 +684,9 @@ const Page = () => {
                                     </TableCell>}
                                     {columns["version"] && <TableCell>
                                       {order.Version}
+                                    </TableCell>}
+                                    {columns["access"] && <TableCell>
+                                      {accessMethod(order)}
                                     </TableCell>}
                                     {columns["status"] && <TableCell>
                                       {/* <SeverityPill color={statusMap[order.Status]}>

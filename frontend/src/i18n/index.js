@@ -5,7 +5,7 @@ import zh from './locales/zh.json';
 import en from './locales/en.json';
 
 export const SUPPORTED_LANGUAGES = ['zh', 'en'];
-export const DEFAULT_LANGUAGE = 'zh';
+export const DEFAULT_LANGUAGE = 'en';
 export const LANGUAGE_STORAGE_KEY = 'octolink.lang';
 
 const resources = {
@@ -19,7 +19,7 @@ if (!i18n.isInitialized) {
     .use(initReactI18next)
     .init({
       resources,
-      // Default to Chinese when no preference is stored.
+      // Default to English when no preference is stored.
       fallbackLng: DEFAULT_LANGUAGE,
       supportedLngs: SUPPORTED_LANGUAGES,
       // Map zh-CN / zh-* down to the zh catalog.
@@ -30,7 +30,10 @@ if (!i18n.isInitialized) {
         escapeValue: false,
       },
       detection: {
-        order: ['localStorage', 'cookie', 'navigator'],
+        // No 'navigator': first visit is deterministically English (DEFAULT_LANGUAGE),
+        // regardless of browser locale. A user's saved choice (localStorage/cookie via
+        // the header switcher) still wins and persists.
+        order: ['localStorage', 'cookie'],
         lookupLocalStorage: LANGUAGE_STORAGE_KEY,
         lookupCookie: LANGUAGE_STORAGE_KEY,
         caches: ['localStorage', 'cookie'],

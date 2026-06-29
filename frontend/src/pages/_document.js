@@ -32,7 +32,7 @@ const Favicon = () => (
 class CustomDocument extends Document {
   render() {
     return (
-      <Html lang="zh">
+      <Html lang="en">
         <Head>
           <Favicon />
           <link

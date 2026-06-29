@@ -131,6 +131,7 @@
       "model": "Model",
       "vendor": "Vendor",
       "version": "Version",
+      "access": "Access Method",
       "status": "Status",
       "actions": "Actions",
       "changeStatusOrder": "Change status display order",

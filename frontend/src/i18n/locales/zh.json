@@ -131,6 +131,7 @@
       "model": "型号",
       "vendor": "厂商",
       "version": "版本",
+      "access": "接入方式",
       "status": "状态",
       "actions": "操作",
       "changeStatusOrder": "切换状态显示顺序",

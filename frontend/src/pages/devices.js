@@ -178,16 +178,21 @@ const Page = () => {
     }
   }
 
-  // Access method (MTP) the agent is connected through. The controller exposes a
-  // per-MTP status on each device (0 offline / 1 associating / 2 online); show the
-  // protocol name(s) that are not offline. Protocol names are not translated.
+  // Access method (MTP) the agent is connected through. A device only ever uses
+  // ONE access method — they are never parallel — so show a single protocol name.
+  // The controller exposes a per-MTP status on each device (0 offline / 1
+  // associating / 2 online); pick the active MTP (highest status wins, so an
+  // online MTP is preferred over an associating one). Protocol names are not
+  // translated. Shows "—" when no MTP is connected.
   const accessMethod = (order) => {
-    const mtps = []
-    if (order.Mqtt >= 1) mtps.push("MQTT")
-    if (order.Websockets >= 1) mtps.push("WebSocket")
-    if (order.Stomp >= 1) mtps.push("STOMP")
-    if (order.Cwmp >= 1) mtps.push("CWMP")
-    return mtps.length ? mtps.join(", ") : "—"
+    const mtps = [
+      { name: "MQTT", status: order.Mqtt },
+      { name: "WebSocket", status: order.Websockets },
+      { name: "STOMP", status: order.Stomp },
+      { name: "CWMP", status: order.Cwmp },
+    ].filter((m) => m.status >= 1)
+    if (!mtps.length) return "—"
+    return mtps.reduce((best, m) => (m.status > best.status ? m : best)).name
   }
 
   const getDeviceProtocol = (order) => {

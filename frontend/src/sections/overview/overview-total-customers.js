@@ -19,7 +19,7 @@ export const OverviewTotalCustomers = (props) => {
           justifyContent="space-between"
           spacing={3}
         >
-          <Stack spacing={1}>
+          <Stack spacing={1} sx={{ minWidth: 0 }}>
             <Typography
               color="text.secondary"
               variant="overline"
@@ -33,6 +33,7 @@ export const OverviewTotalCustomers = (props) => {
           <Avatar
             sx={{
               backgroundColor: 'indigo.main',
+              flexShrink: 0,
               height: 56,
               width: 56
             }}

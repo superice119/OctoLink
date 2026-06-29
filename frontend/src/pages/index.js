@@ -149,7 +149,8 @@ const Page = () => {
           <Grid
             xs={12}
             sm={6}
-            lg={3}
+            lg={6}
+            xl={3}
           >
             <OverviewTotalCustomers
               //difference={16}
@@ -161,7 +162,8 @@ const Page = () => {
           <Grid
             xs={12}
             sm={6}
-            lg={3}
+            lg={6}
+            xl={3}
           >
             <OverviewTasksProgress
               sx={{ height: '100%' }}
@@ -173,7 +175,8 @@ const Page = () => {
           <Grid
             xs={12}
             sm={6}
-            lg={3}
+            lg={6}
+            xl={3}
           >
             <OverviewTasksProgress
               sx={{ height: '100%' }}
@@ -185,7 +188,8 @@ const Page = () => {
           <Grid
             xs={12}
             sm={6}
-            lg={3}
+            lg={6}
+            xl={3}
           >
           <OverviewTasksProgress
               sx={{ height: '100%' }}

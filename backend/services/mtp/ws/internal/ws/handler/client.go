@@ -181,7 +181,7 @@ func ServeController(
 		return
 	}
 
-	client := &Client{hub: hub, eid: cEID, conn: conn, send: make(chan message)}
+	client := &Client{hub: hub, eid: cEID, conn: conn, send: make(chan message, 256)}
 	client.hub.register <- client
 
 	go client.writePump()
@@ -234,7 +234,7 @@ func ServeAgent(
 		return
 	}
 
-	client := &Client{hub: hub, eid: deviceid, conn: conn, send: make(chan message)}
+	client := &Client{hub: hub, eid: deviceid, conn: conn, send: make(chan message, 256)}
 	client.hub.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in

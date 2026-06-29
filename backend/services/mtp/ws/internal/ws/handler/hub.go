@@ -95,8 +95,28 @@ func (h *Hub) run() {
 						delete(h.clients, c.eid)
 					}
 				}
-			}else{
+			} else {
 				log.Printf("New controller connected: %s", client.eid)
+				// Catch the new controller up: send ONLINE status for every
+				// device that was already connected before the controller arrived.
+				for eid := range h.clients {
+					if eid == ceid {
+						continue
+					}
+					data, _ := json.Marshal(deviceStatus{eid, ONLINE})
+					catchup := message{
+						from:    "WS server",
+						eid:     ceid,
+						data:    data,
+						msgType: websocket.TextMessage,
+					}
+					select {
+					case client.send <- catchup:
+						log.Printf("Sent existing device %s ONLINE status to new controller", eid)
+					default:
+						log.Printf("Failed to send existing device %s status to new controller", eid)
+					}
+				}
 			}
 
 		case client := <-h.unregister:

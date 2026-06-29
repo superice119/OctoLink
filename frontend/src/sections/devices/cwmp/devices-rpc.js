@@ -320,7 +320,7 @@ const fetchMessages = async () => {
                   onChange={(event)=>{handleChangeMessage(event)}}
               > 
                 {message && message.map((msg, index) => {
-                  return  <MenuItem value={index}>{msg.name}</MenuItem>
+                  return  <MenuItem key={index} value={index}>{msg.name}</MenuItem>
                 })}
               </Select>
             </FormControl>

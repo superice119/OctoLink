@@ -41,10 +41,7 @@ const Page = () => {
   const [error, setError] = useState('');
 
   const userRole = auth.user?.role || '';
-  if (userRole !== 'super_admin') {
-    if (typeof window !== 'undefined') router.push('/403');
-    return null;
-  }
+  const isSuperAdmin = userRole === 'super_admin';
 
   const fetchTenants = async () => {
     setLoading(true);
@@ -63,7 +60,14 @@ const Page = () => {
     }
   };
 
-  useEffect(() => { fetchTenants(); }, []);
+  useEffect(() => {
+    if (!isSuperAdmin) {
+      if (typeof window !== 'undefined') router.push('/403');
+      return;
+    }
+    fetchTenants();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuperAdmin]);
 
   const handleCreate = async () => {
     if (!newTenant.name.trim()) { setError(t('accessControl.tenants.tenantNameRequired')); return; }
@@ -98,6 +102,8 @@ const Page = () => {
       console.error(e);
     }
   };
+
+  if (!isSuperAdmin) return null;
 
   return (
     <>

@@ -506,7 +506,7 @@ const Page = () => {
                 </Button>
                 {Object.keys(filtersList).map((key) => (
                   (filtersList[key] && 
-                  <Chip label={`${key} : ${filtersList[key]}`} sx={{ml:1, mt:1}} onDelete={()=>{
+                  <Chip key={key} label={`${key} : ${filtersList[key]}`} sx={{ml:1, mt:1}} onDelete={()=>{
                     setFiltersList({ ...filtersList, [key]: "" })
                     setNewFiltersList({ ...newFiltersList, [key]: ""})
                     fetchDevicePerPage(1, statusOrder, { ...filtersList, [key]: "" })
@@ -890,7 +890,7 @@ const Page = () => {
                 >
                   {
                     filterOptions.productClasses.map((v) => {
-                      return <MenuItem value={v}>{v}</MenuItem>
+                      return <MenuItem key={v} value={v}>{v}</MenuItem>
                     })
                   }
                 </Select>
@@ -910,7 +910,7 @@ const Page = () => {
                 >
                   {
                     filterOptions.vendors.map((v) => {
-                      return <MenuItem value={v}>{v}</MenuItem>
+                      return <MenuItem key={v} value={v}>{v}</MenuItem>
                     })
                   }
                 </Select>
@@ -924,7 +924,7 @@ const Page = () => {
                 >
                   {
                     filterOptions.versions.map((v) => {
-                      return <MenuItem value={v}>{v}</MenuItem>
+                      return <MenuItem key={v} value={v}>{v}</MenuItem>
                     })
                   }
                 </Select>
@@ -975,7 +975,7 @@ const Page = () => {
                   >
                     {
                       filterOptions.labels.map((v) => {
-                        return <MenuItem value={v}>{v}</MenuItem>
+                        return <MenuItem key={v} value={v}>{v}</MenuItem>
                       })
                     }
                   </Select>
@@ -989,7 +989,7 @@ const Page = () => {
                 >
                   {
                     filterOptions.models.map((v) => {
-                      return <MenuItem value={v}>{v}</MenuItem>
+                      return <MenuItem key={v} value={v}>{v}</MenuItem>
                     })
                   }
                 </Select>
@@ -1008,7 +1008,7 @@ const Page = () => {
                 >
                   {
                     filterOptions.productClasses.map((v) => {
-                      return <MenuItem value={v}>{v}</MenuItem>
+                      return <MenuItem key={v} value={v}>{v}</MenuItem>
                     })
                   }
                 </Select>

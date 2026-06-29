@@ -55,28 +55,34 @@ type Bridge struct {
 	Ws             config.Ws
 	NewDeviceQueue map[string]string
 	NewDevQMutex   *sync.Mutex
-	wsWriteMu      sync.Mutex
-	kv             jetstream.KeyValue
-	Ctx            context.Context
+	// wsWriteMu guards both currentWc and all WriteMessage calls.
+	// gorilla/websocket forbids concurrent writers; NATS callbacks run in
+	// separate goroutines, so every write must go through this lock.
+	wsWriteMu     sync.Mutex
+	currentWc     *websocket.Conn // always use via wsWrite(), never directly
+	subscribeOnce sync.Once
+	kv            jetstream.KeyValue
+	Ctx           context.Context
 }
 
-// wsWrite serializes all writes to the websocket connection. gorilla/websocket
-// does not allow concurrent writers, and the .info/.api NATS handlers run on
-// separate goroutines — concurrent WriteMessage calls corrupt the connection
-// (observed as abnormal close 1005), which previously killed the bridge.
-func (b *Bridge) wsWrite(wc *websocket.Conn, messageType int, data []byte) error {
+// wsWrite serializes all writes through the current active WS connection.
+// NATS callbacks always call this instead of conn.WriteMessage directly so
+// that a reconnect (which swaps currentWc) is transparent to them.
+func (b *Bridge) wsWrite(messageType int, data []byte) error {
 	b.wsWriteMu.Lock()
 	defer b.wsWriteMu.Unlock()
-	return wc.WriteMessage(messageType, data)
+	return b.currentWc.WriteMessage(messageType, data)
 }
 
 func NewBridge(p Publisher, s Subscriber, ctx context.Context, w config.Ws, kv jetstream.KeyValue) *Bridge {
 	return &Bridge{
-		Pub: p,
-		Sub: s,
-		Ws:  w,
-		Ctx: ctx,
-		kv:  kv,
+		Pub:            p,
+		Sub:            s,
+		Ws:             w,
+		Ctx:            ctx,
+		kv:             kv,
+		NewDeviceQueue: make(map[string]string),
+		NewDevQMutex:   &sync.Mutex{},
 	}
 }
 
@@ -93,14 +99,32 @@ func (b *Bridge) StartBridge(port string, tls bool) {
 				continue
 			}
 			log.Println("Connected to WS endpoint--> ", url)
-			go b.subscribe(wc)
+
+			// Swap the active connection so all NATS callbacks immediately
+			// write to the new socket. The lock also serializes this swap
+			// with any in-flight writes from previous callbacks.
+			b.wsWriteMu.Lock()
+			b.currentWc = wc
+			b.wsWriteMu.Unlock()
+
+			// Pending device-registration entries from the old connection are
+			// invalid after a reconnect; devices will re-register themselves.
+			b.NewDevQMutex.Lock()
+			b.NewDeviceQueue = make(map[string]string)
+			b.NewDevQMutex.Unlock()
+
+			// Subscribe to NATS exactly once. The closures hold no wc
+			// reference — they call b.wsWrite() which uses currentWc.
+			b.subscribeOnce.Do(func() {
+				go b.subscribe()
+			})
+
 			go func(wc *websocket.Conn) {
 				for {
 					msgType, wsMsg, err := wc.ReadMessage()
 					if err != nil {
-						// Any read error means this connection is gone (incl. close
-						// 1005 / no-status, which is NOT covered by IsCloseError).
-						// Always reconnect instead of silently letting the bridge die.
+						// Any read error (incl. close 1005 / no-status,
+						// not covered by IsCloseError) → reconnect.
 						log.Printf("websocket read error, reconnecting: %v", err)
 						time.Sleep(WS_CONNECTION_RETRY)
 						b.StartBridge(port, tls)
@@ -123,7 +147,7 @@ func (b *Bridge) StartBridge(port string, tls bool) {
 					}
 					if reflect.TypeOf(record.RecordType) == reflect.TypeOf(noSessionRecord) {
 						if _, ok := b.NewDeviceQueue[device]; ok {
-							b.newDeviceMsgHandler(wc, device, wsMsg)
+							b.newDeviceMsgHandler(device, wsMsg)
 							continue
 						}
 						log.Println("Handle api request")
@@ -144,10 +168,9 @@ func (b *Bridge) StartBridge(port string, tls bool) {
 	}(port, tls)
 }
 
-func (b *Bridge) subscribe(wc *websocket.Conn) {
-
-	b.NewDeviceQueue = make(map[string]string)
-	b.NewDevQMutex = &sync.Mutex{}
+// subscribe creates NATS subscriptions exactly once (via subscribeOnce).
+// Callbacks write through b.wsWrite so reconnects are transparent.
+func (b *Bridge) subscribe() {
 
 	b.Sub(NATS_WS_ADAPTER_SUBJECT_PREFIX+"*.info", func(msg *nats.Msg) {
 
@@ -160,7 +183,7 @@ func (b *Bridge) subscribe(wc *websocket.Conn) {
 		b.NewDeviceQueue[device] = ""
 		b.NewDevQMutex.Unlock()
 
-		err := b.wsWrite(wc, websocket.BinaryMessage, msg.Data)
+		err := b.wsWrite(websocket.BinaryMessage, msg.Data)
 		if err != nil {
 			log.Printf("send websocket msg error: %q", err)
 			return
@@ -171,7 +194,7 @@ func (b *Bridge) subscribe(wc *websocket.Conn) {
 
 		log.Printf("Received message on api subject")
 
-		err := b.wsWrite(wc, websocket.BinaryMessage, msg.Data)
+		err := b.wsWrite(websocket.BinaryMessage, msg.Data)
 		if err != nil {
 			log.Printf("send websocket msg error: %q", err)
 			return
@@ -216,7 +239,7 @@ func respondMsg(respond func(data []byte) error, code int, msgData any) {
 	respond([]byte(msg))
 }
 
-func (b *Bridge) newDeviceMsgHandler(wc *websocket.Conn, device string, msg []byte) {
+func (b *Bridge) newDeviceMsgHandler(device string, msg []byte) {
 	log.Printf("New device %s response", device)
 	b.Pub(NATS_WS_SUBJECT_PREFIX+device+".info", msg)
 

@@ -83,7 +83,7 @@ const showIcon = (mtpType) => {
           justifyContent="space-between"
           spacing={3}
         >
-          <Stack spacing={1}>
+          <Stack spacing={1} sx={{ minWidth: 0 }}>
             <Typography
               color="sucess.main"
               gutterBottom
@@ -98,6 +98,7 @@ const showIcon = (mtpType) => {
           <Avatar
             sx={{
               backgroundColor: 'primary.darkest',
+              flexShrink: 0,
               height: 56,
               width: 56
             }}

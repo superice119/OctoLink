@@ -121,6 +121,12 @@ export const SideNav = (props) => {
           component="nav"
           sx={{
             flexGrow: 1,
+            // Allow the menu region to shrink and scroll on short screens
+            // (e.g. 13.3" panels at 150% scale) instead of being overlapped
+            // by the footer. minHeight:0 defeats the flex `min-height:auto`
+            // floor so overflowY can take effect.
+            minHeight: 0,
+            overflowY: 'auto',
             px: 2,
             py: 3
           }}
@@ -186,24 +192,41 @@ export const SideNav = (props) => {
             </List> */}
           </Stack>
         </Box>
-        <Stack style={{position:"absolute", bottom:"2px", left:"2px"}} direction={"row"} spacing={"1"} zIndex={9999}>  
-        <Typography
-          align="center"
-          color="primary.contrastText"
+        {/* Footer sits in normal flow as the column's bottom element
+            (nav above uses flexGrow:1). No absolute/zIndex hack, so it
+            can never overlap or hijack clicks on the last menu item. */}
+        <Box
           component="footer"
-          variant="body2"
-          sx={{ p: 2 }}
+          sx={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 1,
+            px: 2,
+            py: 2
+          }}
         >
-          Powered by
-        </Typography>
-      </Stack>
-      <a href='https://github.com/superice119/OctoLink' style={{position:"absolute", bottom:"10px", left:"100px"}} target='_blank'>
-      <img
-        src="/assets/logo.png"
-        alt="OctoLink logo"
-        width={80}
-        />
-      </a>
+          <Typography
+            align="center"
+            color="primary.contrastText"
+            variant="body2"
+          >
+            Powered by
+          </Typography>
+          <a
+            href="https://github.com/superice119/OctoLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'inline-flex' }}
+          >
+            <img
+              src="/assets/logo.png"
+              alt="OctoLink logo"
+              width={80}
+            />
+          </a>
+        </Box>
       </Box>
     </Scrollbar>
   );

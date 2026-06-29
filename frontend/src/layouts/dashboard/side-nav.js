@@ -152,6 +152,7 @@ export const SideNav = (props) => {
                   key={item.title}
                   path={item.path}
                   title={t(item.title)}
+                  // eslint-disable-next-line react/no-children-prop -- `children` is a submenu data array, not JSX
                   children={item?.children}
                   padleft={2}
                   tooltip={item.tooltip}

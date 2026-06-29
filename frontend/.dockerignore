@@ -1,0 +1,26 @@
+# Keep host build artifacts and secrets out of the image build context.
+# The build/Dockerfile uses `COPY . ./` with the frontend dir as context;
+# without this file a stale host `.next/` (e.g. left by `next dev` / e2e) or a
+# foreign-arch `node_modules/` gets copied in and can break the in-image build
+# (PageNotFoundError) or bloat/poison the image.
+node_modules
+.next
+out
+
+# Local env / secrets — never bake into an image
+.env
+.env.*
+!.env.example
+
+# Tests & CI artifacts
+e2e
+playwright-report
+test-results
+playwright.config.js
+
+# VCS / editor / OS noise
+.git
+.gitignore
+.dockerignore
+*.log
+.DS_Store

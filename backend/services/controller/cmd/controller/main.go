@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/leandrofars/oktopus/internal/api"
+	"github.com/leandrofars/oktopus/internal/api/auth"
 	"github.com/leandrofars/oktopus/internal/bridge"
 	"github.com/leandrofars/oktopus/internal/config"
 	"github.com/leandrofars/oktopus/internal/db"
@@ -17,6 +18,12 @@ func main() {
 	done := make(chan os.Signal, 1)
 
 	signal.Notify(done, syscall.SIGINT)
+
+	// Fail closed if the JWT signing secret is missing/default/weak, so the
+	// controller never runs with a forgeable token key (WS-38).
+	if err := auth.RequireSecret(); err != nil {
+		log.Fatalf("insecure JWT configuration: %v", err)
+	}
 
 	c := config.NewConfig()
 

@@ -10,10 +10,39 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// insecureDefaultKey is the historical hardcoded signing key. It is now
+// rejected outright: because the source is public, anyone could forge a
+// super_admin token with it (see WS-38). The controller must be configured
+// with a strong, secret SECRET_API_KEY instead.
+const insecureDefaultKey = "supersecretkey"
+
+// MinSecretLen is the minimum acceptable length for SECRET_API_KEY.
+const MinSecretLen = 16
+
+// RequireSecret validates the JWT signing secret at startup and fails closed.
+// Call it once before serving traffic so the controller refuses to run with a
+// missing, default, or weak key rather than silently accepting forged tokens.
+func RequireSecret() error {
+	key, ok := os.LookupEnv("SECRET_API_KEY")
+	if !ok || key == "" {
+		return errors.New("SECRET_API_KEY must be set (no insecure default key is permitted)")
+	}
+	if key == insecureDefaultKey {
+		return fmt.Errorf("SECRET_API_KEY must not be the known default %q", insecureDefaultKey)
+	}
+	if len(key) < MinSecretLen {
+		return fmt.Errorf("SECRET_API_KEY is too short (%d bytes); use at least %d random bytes", len(key), MinSecretLen)
+	}
+	return nil
+}
+
 func getJwtKey() []byte {
 	jwtKey, ok := os.LookupEnv("SECRET_API_KEY")
-	if !ok || jwtKey == "" {
-		return []byte("supersecretkey")
+	if !ok || jwtKey == "" || jwtKey == insecureDefaultKey {
+		// Fail closed: never sign or validate tokens with a missing or
+		// guessable key. RequireSecret() should have already aborted startup;
+		// reaching here means a misconfiguration slipped through.
+		log.Fatal("SECRET_API_KEY is unset or set to the insecure default; refusing to use a guessable JWT key")
 	}
 	return []byte(jwtKey)
 }

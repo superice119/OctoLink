@@ -3,10 +3,18 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/leandrofars/oktopus/internal/api/auth"
 )
+
+// TestMain sets a valid signing secret so token generation/validation in these
+// tests does not hit the fail-closed guard in auth.getJwtKey (WS-38).
+func TestMain(m *testing.M) {
+	os.Setenv("SECRET_API_KEY", "test-secret-key-for-unit-tests-only")
+	os.Exit(m.Run())
+}
 
 func TestMiddleware_MissingToken(t *testing.T) {
 	handler := Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

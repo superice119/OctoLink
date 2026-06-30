@@ -31,6 +31,13 @@ func (h *Handler) deviceOnline(device, mtp string) {
 
 	log.Printf("Device %s is online", device)
 
+	// Immediately mark the MTP layer online so status is correct even if the
+	// GET round-trip below is delayed or lost (mirrors deviceOffline behaviour).
+	mtpLayer := getMtp(mtp)
+	if err := h.db.UpdateStatus(device, db.Online, mtpLayer); err != nil {
+		log.Printf("deviceOnline: failed to update status for %s: %v", device, err)
+	}
+
 	msg := usp.NewGetMsg(usp_msg.Get{
 		ParamPaths: []string{
 			"Device.DeviceInfo.Manufacturer",
